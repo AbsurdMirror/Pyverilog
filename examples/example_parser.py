@@ -10,7 +10,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pyverilog
 from pyverilog.vparser.parser import parse
 
-
 def main():
     INFO = "Verilog code parser"
     VERSION = pyverilog.__version__
@@ -45,8 +44,15 @@ def main():
     ast, directives = parse(filelist,
                             preprocess_include=options.include,
                             preprocess_define=options.define)
+    json_f = open('./ct_ifu_top.json', 'w')
+    json_tree_f = open('./ct_ifu_top_tree2.json', 'w')
+    ast.show_as_json     (buf=json_f)
+    ast.show_as_json_tree(buf=json_tree_f)
 
-    ast.show()
+    # import json
+    # with open('./ct_ifu_top_dict.json', 'w') as f:
+    #     f.write(json.dumps(ast.dict(), indent=4))
+
     for lineno, directive in directives:
         print('Line %d : %s' % (lineno, directive))
 

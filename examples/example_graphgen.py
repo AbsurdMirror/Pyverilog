@@ -12,6 +12,9 @@ from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import os
+
+os.environ["PATH"] += os.pathsep + 'C:\\Users\\dongzhengxiang\\Desktop\\study-note\\Graphviz-12.2.0-win64\\bin'  # Assuming Graphviz is installed in this directory
+
 import pygraphviz as pgv
 from optparse import OptionParser
 
@@ -98,7 +101,7 @@ def main():
 
     for target in options.searchtarget:
         graphgen.generate(target, walk=options.walk, identical=options.identical,
-                          step=options.step, reorder=options.reorder, delay=options.delay)
+                          step=options.step, do_reorder=options.reorder, delay=options.delay)
 
     graphgen.draw()
 

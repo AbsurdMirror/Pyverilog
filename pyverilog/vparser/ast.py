@@ -18,12 +18,16 @@ from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import re
+import json
 
 
 class Node(object):
     """ Abstact class for every element in parser """
 
     def children(self):
+        pass
+
+    def dict(self):
         pass
 
     def show(self, buf=sys.stdout, offset=0, attrnames=False, showlineno=True):
@@ -51,6 +55,114 @@ class Node(object):
 
         for c in self.children():
             c.show(buf, offset + indent, attrnames, showlineno)
+
+
+    def show_as_json(self, buf=sys.stdout, offset=0, attrnames=True, showlineno=True, is_child_get_json=False):
+        indent = '  '  # 使用两个空格作为缩进
+        lead = ' ' * offset
+
+        # 准备节点的基本信息
+        node_info = {
+            'type': self.__class__.__name__,
+        }
+
+        # 添加属性信息
+        if self.attr_names:
+            attrs = {}
+            if attrnames:
+                nvlist = [(n, getattr(self, n)) for n in self.attr_names]
+                attrs = {n: v for n, v in nvlist}
+            else:
+                vlist = [getattr(self, n) for n in self.attr_names]
+                attrs = {'attr' + str(i): v for i, v in enumerate(vlist)}
+            node_info['attrs'] = attrs
+
+        # 添加行号信息
+        if showlineno:
+            if hasattr(self, 'end_lineno'):
+                node_info['lineno'] = ' (from %s to %s)' % (self.lineno, self.end_lineno)
+            if hasattr(self, 'end_lineno'):
+                node_info['end_lineno'] = ' (at %s)' % self.lineno
+
+        # 添加子节点信息
+        node_info['children'] = []
+        for c in self.children():
+            child_json = c.show_as_json(offset + len(indent), attrnames, is_child_get_json=True)
+            node_info['children'].append(child_json)
+
+        if is_child_get_json:
+            return node_info
+        
+        # 转换为JSON字符串并输出
+        try:
+            json_str = json.dumps(node_info, indent=2)
+            # buf.write(json_str)
+            buf.write(json_str)
+        except:
+            buf.write(json_str, node_info)
+
+
+    def show_as_json_tree(self, buf=sys.stdout, offset=0, attrnames=True, showlineno=True, is_child_get_json=False):
+        indent = '  '  # 使用两个空格作为缩进
+        lead = ' ' * offset
+
+        # 准备节点的基本信息
+        node_info = {
+            'type': self.__class__.__name__,
+        }
+
+        # 添加属性信息
+        if self.attr_names:
+            attrs = {}
+            if attrnames:
+                # 获取属性名和属性值，并存入字典
+                nvlist = [(n, getattr(self, n)) for n in self.attr_names]
+                attrs = {n: v for n, v in nvlist}
+            else:
+                # 获取属性值，并存储为字典
+                vlist = [getattr(self, n) for n in self.attr_names]
+                attrs = {'attr' + str(i): v for i, v in enumerate(vlist)}
+            node_info['attrs'] = attrs
+
+        # 添加行号信息
+        if showlineno:
+            if hasattr(self, 'end_lineno'):
+                # 如果存在结束行号，添加行号信息
+                node_info['lineno'] = ' (from %s to %s)' % (self.lineno, self.end_lineno)
+            if hasattr(self, 'end_lineno'):
+                # 如果存在结束行号，添加行号信息
+                node_info['end_lineno'] = ' (at %s)' % self.lineno
+
+        # 添加子节点信息
+        for c in self.children():
+            child_json = c.show_as_json_tree(offset + len(indent), attrnames, is_child_get_json=True)
+            if child_json["type"] in node_info:
+                # 如果子节点类型已存在于节点信息中，则创建复数形式存储子节点
+                if child_json["type"]+"s" in node_info:
+                    print("Duplicated child type:", child_json["type"], node_info[child_json["type"]], node_info[child_json["type"]+"s"])
+                    assert False
+                node_info[child_json["type"]+"s"] = [node_info[child_json["type"]], child_json]
+                del node_info[child_json["type"]]
+            elif child_json["type"]+"s" in node_info:
+                # 如果子节点类型的复数形式已存在于节点信息中，则添加子节点
+                node_info[child_json["type"]+"s"].append(child_json)
+            else:
+                # 如果子节点类型及其复数形式均不存在于节点信息中，则添加子节点
+                node_info[child_json["type"]] = child_json
+            del child_json["type"]
+
+        if is_child_get_json:
+            return node_info
+    
+        # 转换为JSON字符串并输出
+        try:
+            json_str = json.dumps(node_info, indent=2)
+            # 将JSON字符串写入缓冲区
+            # buf.write(json_str)
+            buf.write(json_str)
+        except:
+            # 如果发生异常，尝试写入JSON字符串和节点信息
+            buf.write(json_str, node_info)
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -93,6 +205,13 @@ class Source(Node):
         if self.description:
             nodelist.append(self.description)
         return tuple(nodelist)
+    
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name,
+            "description": self.description.dict() if self.description else None,
+        }
 
 
 class Description(Node):
@@ -107,6 +226,12 @@ class Description(Node):
         if self.definitions:
             nodelist.extend(self.definitions)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "definitions": [def_.dict() for def_ in self.definitions] if self.definitions else None,
+        }
 
 
 class ModuleDef(Node):
@@ -130,6 +255,15 @@ class ModuleDef(Node):
             nodelist.extend(self.items)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name,
+            "paramlist": self.paramlist.dict() if self.paramlist else None,
+            "portlist": self.portlist.dict() if self.portlist else None,
+            "items": [item.dict() for item in self.items] if self.items else None,
+            "default_nettype": self.default_nettype,
+        }
 
 class Paramlist(Node):
     attr_names = ()
@@ -144,6 +278,12 @@ class Paramlist(Node):
             nodelist.extend(self.params)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "params": [param.dict() for param in self.params] if self.params else None,
+        }
+
 
 class Portlist(Node):
     attr_names = ()
@@ -157,6 +297,12 @@ class Portlist(Node):
         if self.ports:
             nodelist.extend(self.ports)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "ports": [port.dict() for port in self.ports] if self.ports else None,
+        }
 
 
 class Port(Node):
@@ -175,6 +321,16 @@ class Port(Node):
             nodelist.append(self.width)
         return tuple(nodelist)
 
+    def dict(self):
+        d = {
+            "lineno": f"{self.lineno}",
+            "name": self.name,
+            "dimensions": self.dimensions.dict() if self.dimensions else None,
+            "type": self.type,
+        }
+        if self.width:
+            d["width"] = self.width.dict() if self.width else None
+        return {**d}
 
 class Width(Node):
     attr_names = ()
@@ -191,6 +347,13 @@ class Width(Node):
         if self.lsb:
             nodelist.append(self.lsb)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "msb": self.msb.dict() if self.msb else None,
+            "lsb": self.lsb.dict() if self.lsb else None,
+        }
 
 
 class Length(Width):
@@ -210,6 +373,12 @@ class Dimensions(Node):
             nodelist.extend(self.lengths)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "lengths": [length.dict() for length in self.lengths] if self.lengths else None,
+        }
+
 
 class Identifier(Node):
     attr_names = ('name',)
@@ -224,6 +393,13 @@ class Identifier(Node):
         if self.scope:
             nodelist.append(self.scope)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name,
+            "scope": self.scope.dict() if self.scope else None,
+        }
 
     def __repr__(self):
         if self.scope is None:
@@ -244,6 +420,12 @@ class Value(Node):
             nodelist.append(self.value)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "value": self.value if self.value else None,
+        }
+        
 
 class Constant(Value):
     attr_names = ('value',)
@@ -255,6 +437,12 @@ class Constant(Value):
     def children(self):
         nodelist = []
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "value": self.value,
+        }
 
     def __repr__(self):
         return str(self.value)
@@ -292,6 +480,16 @@ class Variable(Value):
         if self.value:
             nodelist.append(self.value)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name,
+            "width": self.width.dict() if self.width else None,
+            "signed": self.signed,
+            "dimensions": self.dimensions.dict() if self.dimensions else None,
+            "value": self.value.dict() if self.value else None,
+        }
 
 
 class Input(Variable):
@@ -346,6 +544,13 @@ class Ioport(Node):
             nodelist.append(self.second)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "first": self.first.dict() if self.first else None,
+            "second": self.second.dict() if self.second else None,
+        }
+
 
 class Parameter(Node):
     attr_names = ('name', 'signed')
@@ -365,6 +570,15 @@ class Parameter(Node):
         if self.width:
             nodelist.append(self.width)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name,
+            "value": self.value.dict() if self.value else None,
+            "width": self.width.dict() if self.width else None,
+            "signed": self.signed,
+        }
 
 
 class Localparam(Parameter):
@@ -388,6 +602,12 @@ class Decl(Node):
             nodelist.extend(self.list)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "list": [x.dict() for x in self.list],
+        }
+
 
 class Concat(Node):
     attr_names = ()
@@ -401,6 +621,12 @@ class Concat(Node):
         if self.list:
             nodelist.extend(self.list)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "list": [x.dict() for x in self.list],
+        }
 
 
 class LConcat(Concat):
@@ -423,6 +649,13 @@ class Repeat(Node):
             nodelist.append(self.times)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "value": self.value.dict() if self.value else None,
+            "times": self.times.dict() if self.times else None,
+        }
+
 
 class Partselect(Node):
     attr_names = ()
@@ -443,6 +676,14 @@ class Partselect(Node):
             nodelist.append(self.lsb)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "var": self.var.dict() if self.var else None,
+            "msb": self.msb.dict() if self.msb else None,
+            "lsb": self.lsb.dict() if self.lsb else None,
+        }
+
 
 class Pointer(Node):
     attr_names = ()
@@ -460,6 +701,13 @@ class Pointer(Node):
             nodelist.append(self.ptr)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "var": self.var.dict() if self.var else None,
+            "ptr": self.ptr.dict() if self.ptr else None,
+        }
+
 
 class Lvalue(Node):
     attr_names = ()
@@ -473,6 +721,12 @@ class Lvalue(Node):
         if self.var:
             nodelist.append(self.var)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "var": self.var.dict() if self.var else None,
+        }
 
 
 class Rvalue(Node):
@@ -488,6 +742,11 @@ class Rvalue(Node):
             nodelist.append(self.var)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "var": self.var.dict() if self.var else None,
+        }
 
 # ------------------------------------------------------------------------------
 class Operator(Node):
@@ -505,6 +764,14 @@ class Operator(Node):
         if self.right:
             nodelist.append(self.right)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "left": self.left.dict() if self.left else None,
+            "right": self.right.dict() if self.right else None,
+        }
+
 
     def __repr__(self):
         ret = '(' + self.__class__.__name__
@@ -526,6 +793,12 @@ class UnaryOperator(Operator):
         if self.right:
             nodelist.append(self.right)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "right": self.right.dict() if self.right else None,
+        }
 
 
 # Level 1 (Highest Priority)
@@ -694,6 +967,14 @@ class Cond(Operator):
             nodelist.append(self.false_value)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "cond": self.cond.dict() if self.cond else None,
+            "true_value": self.true_value.dict() if self.true_value else None,
+            "false_value": self.false_value.dict() if self.false_value else None
+        }
+
 
 class Assign(Node):
     attr_names = ()
@@ -717,6 +998,15 @@ class Assign(Node):
             nodelist.append(self.rdelay)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "left": self.left.dict() if self.left else None,
+            "right": self.right.dict() if self.right else None,
+            "ldelay": self.ldelay.dict() if self.ldelay else None,
+            "rdelay": self.rdelay.dict() if self.rdelay else None
+        }
+
 
 class Always(Node):
     attr_names = ()
@@ -733,6 +1023,13 @@ class Always(Node):
         if self.statement:
             nodelist.append(self.statement)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "sens_list": [s.dict() for s in self.sens_list],
+            "statement": self.statement.dict()
+        }
 
 
 class AlwaysFF(Always):
@@ -760,6 +1057,12 @@ class SensList(Node):
             nodelist.extend(self.list)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "list": [l.dict() for l in self.list]
+        }
+
 
 class Sens(Node):
     attr_names = ('type',)
@@ -774,6 +1077,13 @@ class Sens(Node):
         if self.sig:
             nodelist.append(self.sig)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "sig": self.sig.dict() if self.sig else None,
+            "type": self.type
+        }
 
 
 class Substitution(Node):
@@ -797,6 +1107,15 @@ class Substitution(Node):
         if self.rdelay:
             nodelist.append(self.rdelay)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "left": self.left.dict() if self.left else None,
+            "right": self.right.dict() if self.right else None,
+            "ldelay": self.ldelay.dict() if self.ldelay else None,
+            "rdelay": self.rdelay.dict() if self.rdelay else None
+        }
 
 
 class BlockingSubstitution(Substitution):
@@ -826,6 +1145,14 @@ class IfStatement(Node):
             nodelist.append(self.false_statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "cond": self.cond.dict() if self.cond else None,
+            "true_statement": self.true_statement.dict() if self.true_statement else None,
+            "false_statement": self.false_statement.dict() if self.false_statement else None
+        }
+
 
 class ForStatement(Node):
     attr_names = ()
@@ -849,6 +1176,15 @@ class ForStatement(Node):
             nodelist.append(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "pre": self.pre.dict() if self.pre else None,
+            "cond": self.cond.dict() if self.cond else None,
+            "post": self.post.dict() if self.post else None,
+            "statement": self.statement.dict() if self.statement else None
+        }
+
 
 class WhileStatement(Node):
     attr_names = ()
@@ -866,6 +1202,13 @@ class WhileStatement(Node):
             nodelist.append(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "cond": self.cond.dict() if self.cond else None,
+            "statement": self.statement.dict() if self.statement else None
+        }
+
 
 class CaseStatement(Node):
     attr_names = ()
@@ -882,6 +1225,13 @@ class CaseStatement(Node):
         if self.caselist:
             nodelist.extend(self.caselist)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "comp": self.comp.dict() if self.comp else None,
+            "caselist": [c.dict() for c in self.caselist]
+        }
 
 
 class CasexStatement(CaseStatement):
@@ -912,6 +1262,13 @@ class Case(Node):
             nodelist.append(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "cond": [c.dict() for c in self.cond],
+            "statement": self.statement.dict() if self.statement else None
+        }
+
 
 class Block(Node):
     attr_names = ('scope',)
@@ -927,6 +1284,12 @@ class Block(Node):
             nodelist.extend(self.statements)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "statements": [s.dict() for s in self.statements]
+        }
+
 
 class Initial(Node):
     attr_names = ()
@@ -941,6 +1304,12 @@ class Initial(Node):
             nodelist.append(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "statement": self.statement.dict() if self.statement else None
+        }
+
 
 class EventStatement(Node):
     attr_names = ()
@@ -954,6 +1323,12 @@ class EventStatement(Node):
         if self.senslist:
             nodelist.append(self.senslist)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "senslist": self.senslist.dict() if self.senslist else None
+        }
 
 
 class WaitStatement(Node):
@@ -972,6 +1347,13 @@ class WaitStatement(Node):
             nodelist.append(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "cond": self.cond.dict() if self.cond else None,
+            "statement": self.statement.dict() if self.statement else None
+        }
+
 
 class ForeverStatement(Node):
     attr_names = ()
@@ -986,6 +1368,12 @@ class ForeverStatement(Node):
             nodelist.append(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "statement": self.statement.dict() if self.statement else None
+        }
+
 
 class DelayStatement(Node):
     attr_names = ()
@@ -999,6 +1387,12 @@ class DelayStatement(Node):
         if self.delay:
             nodelist.append(self.delay)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "delay": self.delay.dict() if self.delay else None
+        }
 
 
 class InstanceList(Node):
@@ -1017,6 +1411,16 @@ class InstanceList(Node):
         if self.instances:
             nodelist.extend(self.instances)
         return tuple(nodelist)
+
+    def dict(self):
+        print(self.module)
+        return {
+            "lineno": f"{self.lineno}",
+            # "module": self.module.dict() if self.module else None,
+            "module": f"{self.module}",
+            "parameterlist": [p.dict() for p in self.parameterlist],
+            "instances": [i.dict() for i in self.instances]
+        }
 
 
 class Instance(Node):
@@ -1040,6 +1444,16 @@ class Instance(Node):
             nodelist.extend(self.portlist)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "module": self.module.dict() if self.module else None,
+            "name": self.name.dict() if self.name else None,
+            "parameterlist": [p.dict() for p in self.parameterlist],
+            "portlist": [p.dict() for p in self.portlist],
+            "array": self.array.dict() if self.array else None
+        }
+
 
 class ParamArg(Node):
     attr_names = ('paramname',)
@@ -1055,6 +1469,13 @@ class ParamArg(Node):
             nodelist.append(self.argname)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "paramname": self.paramname.dict() if self.paramname else None,
+            "argname": self.argname.dict() if self.argname else None
+        }
+
 
 class PortArg(Node):
     attr_names = ('portname',)
@@ -1069,6 +1490,13 @@ class PortArg(Node):
         if self.argname:
             nodelist.append(self.argname)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "portname": self.portname.dict() if self.portname else None,
+            "argname": self.argname.dict() if self.argname else None
+        }
 
 
 class Function(Node):
@@ -1087,6 +1515,14 @@ class Function(Node):
         if self.statement:
             nodelist.extend(self.statement)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name.dict() if self.name else None,
+            "retwidth": self.retwidth.dict() if self.retwidth else None,
+            "statement": [s.dict() for s in self.statement]
+        }
 
     def __repr__(self):
         return self.name.__repr__()
@@ -1108,6 +1544,14 @@ class FunctionCall(Node):
             nodelist.extend(self.args)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name.dict() if self.name else None,
+            "args": [a.dict() for a in self.args]
+        }
+
+
     def __repr__(self):
         return self.name.__repr__()
 
@@ -1126,6 +1570,13 @@ class Task(Node):
             nodelist.extend(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name.dict() if self.name else None,
+            "statement": [s.dict() for s in self.statement]
+        }
+
 
 class TaskCall(Node):
     attr_names = ()
@@ -1143,6 +1594,13 @@ class TaskCall(Node):
             nodelist.extend(self.args)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name.dict() if self.name else None,
+            "args": [a.dict() for a in self.args]
+        }
+
 
 class GenerateStatement(Node):
     attr_names = ()
@@ -1156,6 +1614,12 @@ class GenerateStatement(Node):
         if self.items:
             nodelist.extend(self.items)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "items": [i.dict() for i in self.items]
+        }
 
 
 class SystemCall(Node):
@@ -1171,6 +1635,13 @@ class SystemCall(Node):
         if self.args:
             nodelist.extend(self.args)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "syscall": self.syscall,
+            "args": [a.dict() for a in self.args]
+        }
 
     def __repr__(self):
         ret = []
@@ -1196,6 +1667,13 @@ class IdentifierScopeLabel(Node):
         nodelist = []
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name.dict() if self.name else None,
+            "loop": self.loop is not None
+        }
+
 
 class IdentifierScope(Node):
     attr_names = ()
@@ -1210,6 +1688,12 @@ class IdentifierScope(Node):
             nodelist.extend(self.labellist)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "labellist": [l.dict() for l in self.labellist]
+        }
+
 
 class Pragma(Node):
     attr_names = ()
@@ -1223,6 +1707,12 @@ class Pragma(Node):
         if self.entry:
             nodelist.append(self.entry)
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "entry": self.entry.dict() if self.entry else None
+        }
 
 
 class PragmaEntry(Node):
@@ -1239,6 +1729,13 @@ class PragmaEntry(Node):
             nodelist.append(self.value)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "name": self.name.dict() if self.name else None,
+            "value": self.value.dict() if self.value else None
+        }
+
 
 class Disable(Node):
     attr_names = ('dest',)
@@ -1250,6 +1747,12 @@ class Disable(Node):
     def children(self):
         nodelist = []
         return tuple(nodelist)
+
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "dest": self.dest.dict() if self.dest else None
+        }
 
 
 class ParallelBlock(Node):
@@ -1266,6 +1769,13 @@ class ParallelBlock(Node):
             nodelist.extend(self.statements)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "statements": [s.dict() for s in self.statements],
+            "scope": self.scope.dict() if self.scope else None
+        }
+
 
 class SingleStatement(Node):
     attr_names = ()
@@ -1280,6 +1790,12 @@ class SingleStatement(Node):
             nodelist.append(self.statement)
         return tuple(nodelist)
 
+    def dict(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "statement": self.statement.dict() if self.statement else None
+        }
+
 
 class EmbeddedCode(Node):
     attr_names = ('code',)
@@ -1290,3 +1806,6 @@ class EmbeddedCode(Node):
     def children(self):
         nodelist = []
         return tuple(nodelist)
+
+    def dict(self):
+        return {"lineno": f"{self.lineno}", "code": self.code}
