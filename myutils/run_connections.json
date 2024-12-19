@@ -1,0 +1,180 @@
+{
+    "module_name": "ct_ifu_pcgen",
+    "instance_name": "x_ct_ifu_pcgen",
+    "one2one": {
+        "x_ct_ifu_addrgen": {
+            "Input": [
+                "ct_ifu_addrgen",
+                "addrgen_pcgen_pcload",
+                "addrgen_pcgen_pcload"
+            ],
+            "Output": [
+                "ct_ifu_addrgen",
+                "pcgen_addrgen_cancel",
+                "pcgen_addrgen_cancel"
+            ]
+        },
+        "TOP(ct_ifu_top)": {
+            "Input": [
+                "ct_ifu_top",
+                "rtu_ifu_xx_expt_vld",
+                "rtu_ifu_xx_expt_vld"
+            ],
+            "Output": [
+                "ct_ifu_top",
+                "ifu_rtu_cur_pc_load",
+                "ifu_rtu_cur_pc_load"
+            ]
+        },
+        "x_ct_ifu_ibctrl": {
+            "Input": [
+                "ct_ifu_ibctrl",
+                "ibctrl_pcgen_way_pred",
+                "ibctrl_pcgen_way_pred"
+            ],
+            "Output": [
+                "ct_ifu_ibctrl",
+                "pcgen_ibctrl_lbuf_flush",
+                "pcgen_ibctrl_lbuf_flush"
+            ]
+        },
+        "x_ct_ifu_ifctrl": {
+            "Input": [
+                "ct_ifu_ifctrl",
+                "ifctrl_pcgen_way_pred",
+                "ifctrl_pcgen_way_pred"
+            ],
+            "Output": [
+                "ct_ifu_ifctrl",
+                "pcgen_ifctrl_way_pred_stall",
+                "pcgen_ifctrl_way_pred_stall"
+            ]
+        },
+        "x_ct_ifu_ipctrl": {
+            "Input": [
+                "ct_ifu_ipctrl",
+                "ipctrl_pcgen_taken_pc",
+                "ipctrl_pcgen_taken_pc"
+            ],
+            "Output": [
+                "ct_ifu_ipctrl",
+                "pcgen_ipctrl_cancel",
+                "pcgen_ipctrl_cancel"
+            ]
+        },
+        "x_ct_ifu_lbuf": {
+            "Input": [
+                "ct_ifu_lbuf",
+                "lbuf_pcgen_vld_mask",
+                "lbuf_pcgen_vld_mask"
+            ]
+        },
+        "x_ct_ifu_bht": {
+            "Output": [
+                "ct_ifu_bht",
+                "pcgen_bht_seq_read",
+                "pcgen_bht_seq_read"
+            ]
+        },
+        "x_ct_ifu_btb": {
+            "Output": [
+                "ct_ifu_btb",
+                "pcgen_btb_stall_short",
+                "pcgen_btb_stall_short"
+            ]
+        },
+        "x_ct_ifu_debug": {
+            "Output": [
+                "ct_ifu_debug",
+                "pcgen_debug_pcbus",
+                "pcgen_debug_pcbus"
+            ]
+        },
+        "x_ct_ifu_icache_if": {
+            "Output": [
+                "ct_ifu_icache_if",
+                "pcgen_icache_if_way_pred",
+                "pcgen_icache_if_way_pred"
+            ]
+        },
+        "x_ct_ifu_ifdp": {
+            "Output": [
+                "ct_ifu_ifdp",
+                "pcgen_ifdp_way_pred",
+                "pcgen_ifdp_way_pred"
+            ]
+        },
+        "x_ct_ifu_ipb": {
+            "Output": [
+                "ct_ifu_ipb",
+                "pcgen_ipb_chgflw",
+                "pcgen_ipb_chgflw"
+            ]
+        },
+        "x_ct_ifu_l0_btb": {
+            "Output": [
+                "ct_ifu_l0_btb",
+                "pcgen_l0_btb_if_pc",
+                "pcgen_l0_btb_if_pc"
+            ]
+        },
+        "x_ct_ifu_l1_refill": {
+            "Output": [
+                "ct_ifu_l1_refill",
+                "pcgen_l1_refill_chgflw",
+                "pcgen_l1_refill_chgflw"
+            ]
+        },
+        "x_ct_ifu_sfp": {
+            "Output": [
+                "ct_ifu_sfp",
+                "pcgen_sfp_pc",
+                "pcgen_sfp_pc"
+            ]
+        },
+        "x_ct_ifu_vector": {
+            "Input": [
+                "ct_ifu_vector",
+                "vector_pcgen_reset_on",
+                "vector_pcgen_reset_on"
+            ]
+        }
+    },
+    "one2many": {
+        "pcgen_ipctrl_pipe_cancel": [
+            [
+                "ct_ifu_ipctrl",
+                "x_ct_ifu_ipctrl",
+                "pcgen_ipctrl_pipe_cancel"
+            ],
+            [
+                "ct_ifu_ipdp",
+                "x_ct_ifu_ipdp",
+                "pcgen_ipctrl_pipe_cancel"
+            ]
+        ]
+    },
+    "noconn": [],
+    "one2one_nums": {
+        "self_Input": 49,
+        "x_ct_ifu_addrgen": 3,
+        "TOP(ct_ifu_top)": 19,
+        "x_ct_ifu_ibctrl": 9,
+        "x_ct_ifu_ifctrl": 14,
+        "self_Output": 54,
+        "x_ct_ifu_ipctrl": 16,
+        "x_ct_ifu_lbuf": 2,
+        "x_ct_ifu_bht": 5,
+        "x_ct_ifu_btb": 8,
+        "x_ct_ifu_debug": 2,
+        "x_ct_ifu_icache_if": 12,
+        "x_ct_ifu_ifdp": 3,
+        "x_ct_ifu_ipb": 1,
+        "x_ct_ifu_l0_btb": 4,
+        "x_ct_ifu_l1_refill": 1,
+        "x_ct_ifu_sfp": 1,
+        "x_ct_ifu_vector": 3
+    },
+    "one2many_num": 1,
+    "noconn_num": 0
+}
