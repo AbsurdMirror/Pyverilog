@@ -190,6 +190,8 @@ class Node(object):
         c = hash(self.children())
         return hash((s, c))
 
+    def to_json(self):
+        return self.__class__.__name__
 
 # ------------------------------------------------------------------------------
 class Source(Node):
@@ -209,8 +211,9 @@ class Source(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "name": self.name,
-            "description": self.description.dict() if self.description else None,
+            "description": self.description.dict() if hasattr(self.description, 'dict') else self.description,
         }
 
 
@@ -230,6 +233,7 @@ class Description(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "definitions": [def_.dict() for def_ in self.definitions] if self.definitions else None,
         }
 
@@ -258,9 +262,10 @@ class ModuleDef(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "name": self.name,
-            "paramlist": self.paramlist.dict() if self.paramlist else None,
-            "portlist": self.portlist.dict() if self.portlist else None,
+            "paramlist": self.paramlist.dict() if hasattr(self.paramlist, 'dict') else self.paramlist,
+            "portlist": self.portlist.dict() if hasattr(self.portlist, 'dict') else self.portlist,
             "items": [item.dict() for item in self.items] if self.items else None,
             "default_nettype": self.default_nettype,
         }
@@ -281,6 +286,7 @@ class Paramlist(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "params": [param.dict() for param in self.params] if self.params else None,
         }
 
@@ -301,6 +307,7 @@ class Portlist(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "ports": [port.dict() for port in self.ports] if self.ports else None,
         }
 
@@ -324,12 +331,13 @@ class Port(Node):
     def dict(self):
         d = {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "name": self.name,
-            "dimensions": self.dimensions.dict() if self.dimensions else None,
+            "dimensions": self.dimensions.dict() if hasattr(self.dimensions, 'dict') else self.dimensions,
             "type": self.type,
         }
         if self.width:
-            d["width"] = self.width.dict() if self.width else None
+            d["width"] = self.width.dict() if hasattr(self.width, 'dict') else self.width
         return {**d}
 
 class Width(Node):
@@ -351,8 +359,9 @@ class Width(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "msb": self.msb.dict() if self.msb else None,
-            "lsb": self.lsb.dict() if self.lsb else None,
+            "className": self.__class__.__name__,
+            "msb": self.msb.dict() if hasattr(self.msb, 'dict') else self.msb,
+            "lsb": self.lsb.dict() if hasattr(self.lsb, 'dict') else self.lsb,
         }
 
 
@@ -376,6 +385,7 @@ class Dimensions(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "lengths": [length.dict() for length in self.lengths] if self.lengths else None,
         }
 
@@ -397,8 +407,9 @@ class Identifier(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "name": self.name,
-            "scope": self.scope.dict() if self.scope else None,
+            "scope": self.scope.dict() if hasattr(self.scope, 'dict') else self.scope,
         }
 
     def __repr__(self):
@@ -423,6 +434,7 @@ class Value(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "value": self.value if self.value else None,
         }
         
@@ -441,6 +453,7 @@ class Constant(Value):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "value": self.value,
         }
 
@@ -484,11 +497,12 @@ class Variable(Value):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "name": self.name,
-            "width": self.width.dict() if self.width else None,
+            "width": self.width.dict() if hasattr(self.width, 'dict') else self.width,
             "signed": self.signed,
-            "dimensions": self.dimensions.dict() if self.dimensions else None,
-            "value": self.value.dict() if self.value else None,
+            "dimensions": self.dimensions.dict() if hasattr(self.dimensions, 'dict') else self.dimensions,
+            "value": self.value.dict() if hasattr(self.value, 'dict') else self.value,
         }
 
 
@@ -547,8 +561,9 @@ class Ioport(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "first": self.first.dict() if self.first else None,
-            "second": self.second.dict() if self.second else None,
+            "className": self.__class__.__name__,
+            "first": self.first.dict() if hasattr(self.first, 'dict') else self.first,
+            "second": self.second.dict() if hasattr(self.second, 'dict') else self.second,
         }
 
 
@@ -574,9 +589,10 @@ class Parameter(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "name": self.name,
-            "value": self.value.dict() if self.value else None,
-            "width": self.width.dict() if self.width else None,
+            "value": self.value.dict() if hasattr(self.value, 'dict') else self.value,
+            "width": self.width.dict() if hasattr(self.width, 'dict') else self.width,
             "signed": self.signed,
         }
 
@@ -605,6 +621,7 @@ class Decl(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "list": [x.dict() for x in self.list],
         }
 
@@ -625,6 +642,7 @@ class Concat(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "list": [x.dict() for x in self.list],
         }
 
@@ -652,8 +670,9 @@ class Repeat(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "value": self.value.dict() if self.value else None,
-            "times": self.times.dict() if self.times else None,
+            "className": self.__class__.__name__,
+            "value": self.value.dict() if hasattr(self.value, 'dict') else self.value,
+            "times": self.times.dict() if hasattr(self.times, 'dict') else self.times,
         }
 
 
@@ -679,9 +698,10 @@ class Partselect(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "var": self.var.dict() if self.var else None,
-            "msb": self.msb.dict() if self.msb else None,
-            "lsb": self.lsb.dict() if self.lsb else None,
+            "className": self.__class__.__name__,
+            "var": self.var.dict() if hasattr(self.var, 'dict') else self.var,
+            "msb": self.msb.dict() if hasattr(self.msb, 'dict') else self.msb,
+            "lsb": self.lsb.dict() if hasattr(self.lsb, 'dict') else self.lsb,
         }
 
 
@@ -704,8 +724,9 @@ class Pointer(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "var": self.var.dict() if self.var else None,
-            "ptr": self.ptr.dict() if self.ptr else None,
+            "className": self.__class__.__name__,
+            "var": self.var.dict() if hasattr(self.var, 'dict') else self.var,
+            "ptr": self.ptr.dict() if hasattr(self.ptr, 'dict') else self.ptr,
         }
 
 
@@ -725,7 +746,8 @@ class Lvalue(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "var": self.var.dict() if self.var else None,
+            "className": self.__class__.__name__,
+            "var": self.var.dict() if hasattr(self.var, 'dict') else self.var,
         }
 
 
@@ -745,7 +767,8 @@ class Rvalue(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "var": self.var.dict() if self.var else None,
+            "className": self.__class__.__name__,
+            "var": self.var.dict() if hasattr(self.var, 'dict') else self.var,
         }
 
 # ------------------------------------------------------------------------------
@@ -768,8 +791,9 @@ class Operator(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "left": self.left.dict() if self.left else None,
-            "right": self.right.dict() if self.right else None,
+            "className": self.__class__.__name__,
+            "left": self.left.dict() if hasattr(self.left, 'dict') else self.left,
+            "right": self.right.dict() if hasattr(self.right, 'dict') else self.right,
         }
 
 
@@ -797,7 +821,8 @@ class UnaryOperator(Operator):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "right": self.right.dict() if self.right else None,
+            "className": self.__class__.__name__,
+            "right": self.right.dict() if hasattr(self.right, 'dict') else self.right,
         }
 
 
@@ -970,9 +995,10 @@ class Cond(Operator):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "cond": self.cond.dict() if self.cond else None,
-            "true_value": self.true_value.dict() if self.true_value else None,
-            "false_value": self.false_value.dict() if self.false_value else None
+            "className": self.__class__.__name__,
+            "cond": self.cond.dict() if hasattr(self.cond, 'dict') else self.cond,
+            "true_value": self.true_value.dict() if hasattr(self.true_value, 'dict') else self.true_value,
+            "false_value": self.false_value.dict() if hasattr(self.false_value, 'dict') else self.false_value
         }
 
 
@@ -1001,10 +1027,11 @@ class Assign(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "left": self.left.dict() if self.left else None,
-            "right": self.right.dict() if self.right else None,
-            "ldelay": self.ldelay.dict() if self.ldelay else None,
-            "rdelay": self.rdelay.dict() if self.rdelay else None
+            "className": self.__class__.__name__,
+            "left": self.left.dict() if hasattr(self.left, 'dict') else self.left,
+            "right": self.right.dict() if hasattr(self.right, 'dict') else self.right,
+            "ldelay": self.ldelay.dict() if hasattr(self.ldelay, 'dict') else self.ldelay,
+            "rdelay": self.rdelay.dict() if hasattr(self.rdelay, 'dict') else self.rdelay
         }
 
 
@@ -1027,8 +1054,9 @@ class Always(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "sens_list": [s.dict() for s in self.sens_list],
-            "statement": self.statement.dict()
+            "className": self.__class__.__name__,
+            "sens_list": self.sens_list.dict() if hasattr(self.sens_list, 'dict') else self.sens_list,
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement,
         }
 
 
@@ -1060,6 +1088,7 @@ class SensList(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "list": [l.dict() for l in self.list]
         }
 
@@ -1081,7 +1110,8 @@ class Sens(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "sig": self.sig.dict() if self.sig else None,
+            "className": self.__class__.__name__,
+            "sig": self.sig.dict() if hasattr(self.sig, 'dict') else self.sig,
             "type": self.type
         }
 
@@ -1111,10 +1141,11 @@ class Substitution(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "left": self.left.dict() if self.left else None,
-            "right": self.right.dict() if self.right else None,
-            "ldelay": self.ldelay.dict() if self.ldelay else None,
-            "rdelay": self.rdelay.dict() if self.rdelay else None
+            "className": self.__class__.__name__,
+            "left": self.left.dict() if hasattr(self.left, 'dict') else self.left,
+            "right": self.right.dict() if hasattr(self.right, 'dict') else self.right,
+            "ldelay": self.ldelay.dict() if hasattr(self.ldelay, 'dict') else self.ldelay,
+            "rdelay": self.rdelay.dict() if hasattr(self.rdelay, 'dict') else self.rdelay
         }
 
 
@@ -1148,9 +1179,10 @@ class IfStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "cond": self.cond.dict() if self.cond else None,
-            "true_statement": self.true_statement.dict() if self.true_statement else None,
-            "false_statement": self.false_statement.dict() if self.false_statement else None
+            "className": self.__class__.__name__,
+            "cond": self.cond.dict() if hasattr(self.cond, 'dict') else self.cond,
+            "true_statement": self.true_statement.dict() if hasattr(self.true_statement, 'dict') else self.true_statement,
+            "false_statement": self.false_statement.dict() if hasattr(self.false_statement, 'dict') else self.false_statement
         }
 
 
@@ -1179,10 +1211,11 @@ class ForStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "pre": self.pre.dict() if self.pre else None,
-            "cond": self.cond.dict() if self.cond else None,
-            "post": self.post.dict() if self.post else None,
-            "statement": self.statement.dict() if self.statement else None
+            "className": self.__class__.__name__,
+            "pre": self.pre.dict() if hasattr(self.pre, 'dict') else self.pre,
+            "cond": self.cond.dict() if hasattr(self.cond, 'dict') else self.cond,
+            "post": self.post.dict() if hasattr(self.post, 'dict') else self.post,
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement
         }
 
 
@@ -1205,8 +1238,9 @@ class WhileStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "cond": self.cond.dict() if self.cond else None,
-            "statement": self.statement.dict() if self.statement else None
+            "className": self.__class__.__name__,
+            "cond": self.cond.dict() if hasattr(self.cond, 'dict') else self.cond,
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement
         }
 
 
@@ -1229,7 +1263,8 @@ class CaseStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "comp": self.comp.dict() if self.comp else None,
+            "className": self.__class__.__name__,
+            "comp": self.comp.dict() if hasattr(self.comp, 'dict') else self.comp,
             "caselist": [c.dict() for c in self.caselist]
         }
 
@@ -1265,8 +1300,9 @@ class Case(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "cond": [c.dict() for c in self.cond],
-            "statement": self.statement.dict() if self.statement else None
+            "className": self.__class__.__name__,
+            "cond": [c.dict() for c in self.cond] if self.cond else [],
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement
         }
 
 
@@ -1287,6 +1323,7 @@ class Block(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "statements": [s.dict() for s in self.statements]
         }
 
@@ -1307,7 +1344,8 @@ class Initial(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "statement": self.statement.dict() if self.statement else None
+            "className": self.__class__.__name__,
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement
         }
 
 
@@ -1327,7 +1365,8 @@ class EventStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "senslist": self.senslist.dict() if self.senslist else None
+            "className": self.__class__.__name__,
+            "senslist": self.senslist.dict() if hasattr(self.senslist, 'dict') else self.senslist
         }
 
 
@@ -1350,8 +1389,9 @@ class WaitStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "cond": self.cond.dict() if self.cond else None,
-            "statement": self.statement.dict() if self.statement else None
+            "className": self.__class__.__name__,
+            "cond": self.cond.dict() if hasattr(self.cond, 'dict') else self.cond,
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement
         }
 
 
@@ -1371,7 +1411,8 @@ class ForeverStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "statement": self.statement.dict() if self.statement else None
+            "className": self.__class__.__name__,
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement
         }
 
 
@@ -1391,7 +1432,8 @@ class DelayStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "delay": self.delay.dict() if self.delay else None
+            "className": self.__class__.__name__,
+            "delay": self.delay.dict() if hasattr(self.delay, 'dict') else self.delay
         }
 
 
@@ -1413,11 +1455,10 @@ class InstanceList(Node):
         return tuple(nodelist)
 
     def dict(self):
-        print(self.module)
         return {
             "lineno": f"{self.lineno}",
-            # "module": self.module.dict() if self.module else None,
-            "module": f"{self.module}",
+            "className": self.__class__.__name__,
+            "module": self.module.dict() if hasattr(self.module, 'dict') else self.module,
             "parameterlist": [p.dict() for p in self.parameterlist],
             "instances": [i.dict() for i in self.instances]
         }
@@ -1447,11 +1488,20 @@ class Instance(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "module": self.module.dict() if self.module else None,
-            "name": self.name.dict() if self.name else None,
+            "className": self.__class__.__name__,
+            "module": self.module.dict() if hasattr(self.module, 'dict') else self.module,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name,
             "parameterlist": [p.dict() for p in self.parameterlist],
             "portlist": [p.dict() for p in self.portlist],
-            "array": self.array.dict() if self.array else None
+            "array": self.array.dict() if hasattr(self.array, 'dict') else self.array
+        }
+
+    def to_json(self):
+        return {
+            "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
+            "module": self.module.dict() if hasattr(self.module, 'dict') else self.module,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name
         }
 
 
@@ -1472,8 +1522,9 @@ class ParamArg(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "paramname": self.paramname.dict() if self.paramname else None,
-            "argname": self.argname.dict() if self.argname else None
+            "className": self.__class__.__name__,
+            "paramname": self.paramname.dict() if hasattr(self.paramname, 'dict') else self.paramname,
+            "argname": self.argname.dict() if hasattr(self.argname, 'dict') else self.argname
         }
 
 
@@ -1494,8 +1545,9 @@ class PortArg(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "portname": self.portname.dict() if self.portname else None,
-            "argname": self.argname.dict() if self.argname else None
+            "className": self.__class__.__name__,
+            "portname": self.portname.dict() if hasattr(self.portname, 'dict') else self.portname,
+            "argname": self.argname.dict() if hasattr(self.argname, 'dict') else self.argname
         }
 
 
@@ -1519,8 +1571,9 @@ class Function(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "name": self.name.dict() if self.name else None,
-            "retwidth": self.retwidth.dict() if self.retwidth else None,
+            "className": self.__class__.__name__,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name,
+            "retwidth": self.retwidth.dict() if hasattr(self.retwidth, 'dict') else self.retwidth,
             "statement": [s.dict() for s in self.statement]
         }
 
@@ -1547,7 +1600,8 @@ class FunctionCall(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "name": self.name.dict() if self.name else None,
+            "className": self.__class__.__name__,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name,
             "args": [a.dict() for a in self.args]
         }
 
@@ -1573,7 +1627,8 @@ class Task(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "name": self.name.dict() if self.name else None,
+            "className": self.__class__.__name__,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name,
             "statement": [s.dict() for s in self.statement]
         }
 
@@ -1597,7 +1652,8 @@ class TaskCall(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "name": self.name.dict() if self.name else None,
+            "className": self.__class__.__name__,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name,
             "args": [a.dict() for a in self.args]
         }
 
@@ -1618,6 +1674,7 @@ class GenerateStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "items": [i.dict() for i in self.items]
         }
 
@@ -1639,6 +1696,7 @@ class SystemCall(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "syscall": self.syscall,
             "args": [a.dict() for a in self.args]
         }
@@ -1670,7 +1728,8 @@ class IdentifierScopeLabel(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "name": self.name.dict() if self.name else None,
+            "className": self.__class__.__name__,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name,
             "loop": self.loop is not None
         }
 
@@ -1691,6 +1750,7 @@ class IdentifierScope(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "labellist": [l.dict() for l in self.labellist]
         }
 
@@ -1711,7 +1771,8 @@ class Pragma(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "entry": self.entry.dict() if self.entry else None
+            "className": self.__class__.__name__,
+            "entry": self.entry.dict() if hasattr(self.entry, 'dict') else self.entry
         }
 
 
@@ -1732,8 +1793,9 @@ class PragmaEntry(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "name": self.name.dict() if self.name else None,
-            "value": self.value.dict() if self.value else None
+            "className": self.__class__.__name__,
+            "name": self.name.dict() if hasattr(self.name, 'dict') else self.name,
+            "value": self.value.dict() if hasattr(self.value, 'dict') else self.value
         }
 
 
@@ -1751,7 +1813,8 @@ class Disable(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "dest": self.dest.dict() if self.dest else None
+            "className": self.__class__.__name__,
+            "dest": self.dest.dict() if hasattr(self.dest, 'dict') else self.dest
         }
 
 
@@ -1772,8 +1835,9 @@ class ParallelBlock(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
+            "className": self.__class__.__name__,
             "statements": [s.dict() for s in self.statements],
-            "scope": self.scope.dict() if self.scope else None
+            "scope": self.scope.dict() if hasattr(self.scope, 'dict') else self.scope
         }
 
 
@@ -1793,7 +1857,8 @@ class SingleStatement(Node):
     def dict(self):
         return {
             "lineno": f"{self.lineno}",
-            "statement": self.statement.dict() if self.statement else None
+            "className": self.__class__.__name__,
+            "statement": self.statement.dict() if hasattr(self.statement, 'dict') else self.statement
         }
 
 
@@ -1808,4 +1873,4 @@ class EmbeddedCode(Node):
         return tuple(nodelist)
 
     def dict(self):
-        return {"lineno": f"{self.lineno}", "code": self.code}
+        return {"lineno": f"{self.lineno}", "className": self.__class__.__name__, "code": self.code}
