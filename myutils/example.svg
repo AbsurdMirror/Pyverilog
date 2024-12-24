@@ -1,10 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="2880" height="3630" viewBox="0 0 2880 3630">
+     width="2880" height="6750" viewBox="0 0 2880 6750">
 <defs>
 </defs>
-<rect x="50" y="50" width="2780" height="3530" fill="white" stroke="black" />
-<rect x="1190" y="420" width="500" height="2840" fill="white" stroke="black" />
-<rect x="370" y="420" width="500" height="2840" fill="white" stroke="black" />
-<rect x="2010" y="420" width="500" height="2840" fill="white" stroke="black" />
+<rect x="50" y="50" width="2780" height="6650" fill="white" stroke="black" />
+<rect x="1190" y="420" width="500" height="5960" fill="white" stroke="black" />
+<rect x="370" y="420" width="500" height="290" fill="white" stroke="black" />
+<path d="M870,515.0 L1190,515.0" stroke="blue" />
+<path d="M870,565.0 L1190,565.0" stroke="blue" />
+<path d="M870,615.0 L1190,615.0" stroke="black" />
+<rect x="370" y="1030" width="500" height="1090" fill="white" stroke="black" />
+<path d="M870,1125.0 L1190,1125.0" stroke="blue" />
+<path d="M870,1175.0 L1190,1175.0" stroke="blue" />
+<path d="M870,1225.0 L1190,1225.0" stroke="blue" />
+<path d="M870,1275.0 L1190,1275.0" stroke="blue" />
+<path d="M870,1325.0 L1190,1325.0" stroke="blue" />
+<path d="M870,1375.0 L1190,1375.0" stroke="blue" />
+<path d="M870,1425.0 L1190,1425.0" stroke="blue" />
+<path d="M870,1475.0 L1190,1475.0" stroke="blue" />
+<path d="M870,1525.0 L1190,1525.0" stroke="blue" />
+<path d="M870,1575.0 L1190,1575.0" stroke="blue" />
+<path d="M870,1625.0 L1190,1625.0" stroke="blue" />
+<path d="M870,1675.0 L1190,1675.0" stroke="blue" />
+<path d="M870,1725.0 L1190,1725.0" stroke="blue" />
+<path d="M870,1775.0 L1190,1775.0" stroke="blue" />
+<path d="M870,1825.0 L1190,1825.0" stroke="black" />
+<path d="M870,1875.0 L1190,1875.0" stroke="black" />
+<path d="M870,1925.0 L1190,1925.0" stroke="black" />
+<path d="M870,1975.0 L1190,1975.0" stroke="black" />
+<path d="M870,2025.0 L1190,2025.0" stroke="black" />
+<rect x="370" y="2440" width="500" height="590" fill="white" stroke="black" />
+<path d="M870,2535.0 L1190,2535.0" stroke="blue" />
+<path d="M870,2585.0 L1190,2585.0" stroke="blue" />
+<path d="M870,2635.0 L1190,2635.0" stroke="blue" />
+<path d="M870,2685.0 L1190,2685.0" stroke="blue" />
+<path d="M870,2735.0 L1190,2735.0" stroke="blue" />
+<path d="M870,2785.0 L1190,2785.0" stroke="black" />
+<path d="M870,2835.0 L1190,2835.0" stroke="black" />
+<path d="M870,2885.0 L1190,2885.0" stroke="black" />
+<path d="M870,2935.0 L1190,2935.0" stroke="black" />
+<rect x="370" y="3350" width="500" height="840" fill="white" stroke="black" />
+<path d="M870,3445.0 L1190,3445.0" stroke="blue" />
+<path d="M870,3495.0 L1190,3495.0" stroke="blue" />
+<path d="M870,3545.0 L1190,3545.0" stroke="blue" />
+<path d="M870,3595.0 L1190,3595.0" stroke="blue" />
+<path d="M870,3645.0 L1190,3645.0" stroke="blue" />
+<path d="M870,3695.0 L1190,3695.0" stroke="blue" />
+<path d="M870,3745.0 L1190,3745.0" stroke="blue" />
+<path d="M870,3795.0 L1190,3795.0" stroke="blue" />
+<path d="M870,3845.0 L1190,3845.0" stroke="black" />
+<path d="M870,3895.0 L1190,3895.0" stroke="black" />
+<path d="M870,3945.0 L1190,3945.0" stroke="black" />
+<path d="M870,3995.0 L1190,3995.0" stroke="black" />
+<path d="M870,4045.0 L1190,4045.0" stroke="black" />
+<path d="M870,4095.0 L1190,4095.0" stroke="black" />
+<rect x="370" y="4510" width="500" height="240" fill="white" stroke="black" />
+<path d="M870,4605.0 L1190,4605.0" stroke="blue" />
+<path d="M870,4655.0 L1190,4655.0" stroke="blue" />
+<rect x="370" y="5070" width="500" height="240" fill="white" stroke="black" />
+<path d="M870,5165.0 L1190,5165.0" stroke="black" />
+<path d="M870,5215.0 L1190,5215.0" stroke="black" />
+<rect x="370" y="5630" width="500" height="190" fill="white" stroke="black" />
+<path d="M870,5725.0 L1190,5725.0" stroke="black" />
+<rect x="370" y="6140" width="500" height="190" fill="white" stroke="black" />
+<path d="M870,6235.0 L1190,6235.0" stroke="black" />
+<rect x="2010" y="420" width="500" height="940" fill="white" stroke="black" />
+<rect x="2010" y="1680" width="500" height="390" fill="white" stroke="black" />
+<rect x="2010" y="2390" width="500" height="540" fill="white" stroke="black" />
+<rect x="2010" y="3250" width="500" height="740" fill="white" stroke="black" />
+<rect x="2010" y="4310" width="500" height="290" fill="white" stroke="black" />
+<rect x="2010" y="4920" width="500" height="340" fill="white" stroke="black" />
+<rect x="2010" y="5580" width="500" height="190" fill="white" stroke="black" />
+<rect x="2010" y="6090" width="500" height="290" fill="white" stroke="black" />
 </svg>

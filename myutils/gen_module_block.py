@@ -17,7 +17,7 @@ class ModuleBlockDrawer:
     def __init__(self, module_name, instance_name):
         self.module_name = module_name
         self.instance_name = instance_name
-        self.one2one = defaultdict(dict)
+        self.one2one = defaultdict(lambda: defaultdict(list))
         self.one2many = defaultdict(list)
         self.noconn = []
         self.one2one_nums = defaultdict(int)
@@ -36,9 +36,10 @@ class ModuleBlockDrawer:
         self.margin_module_lr = 320
 
     def add_one2one(self, port_name, port_direction, conn_instance, conn_module, conn_port):
-        self.one2one[conn_instance][port_direction] = (conn_module, conn_port, port_name)
-        self.one2one_nums[f"self_{port_direction}"] += 1
+        self.one2one[conn_instance][port_direction].append((conn_module, conn_port, port_name))
+        # self.one2one_nums[f"self_{port_direction}"] += 1
         self.one2one_nums[conn_instance] += 1
+        print(f"add_one2one: {conn_instance}, {port_direction}, {self.one2one_nums[conn_instance]}")
 
     def add_one2many(self, port_name, conn_instance, conn_module, conn_port):
         if port_name not in self.one2many:
@@ -49,7 +50,44 @@ class ModuleBlockDrawer:
         self.noconn.append(port_name)
         self.noconn_num += 1
     
+    def split_one2one_nums_to_minimize_difference(self):
+        total_sum = sum(self.one2one_nums.values())
+        
+        # Initialize dp array where dp[i] will be True if sum i can be formed
+        dp = [False] * (total_sum // 2 + 1)
+        dp[0] = True
+        
+        # Populate dp array
+        for value in self.one2one_nums.values():
+            for j in range(total_sum // 2, value - 1, -1):
+                if dp[j - value]:
+                    dp[j] = True
+        
+        # Find the maximum sum that can be achieved
+        max_sum = 0
+        for i in range(total_sum // 2, -1, -1):
+            if dp[i]:
+                max_sum = i
+                break
+        
+        # 构建 dict1，尽可能接近 max_sum
+        dict1 = {}
+        while max_sum > 0:
+            for k, v in self.one2one_nums.items():
+                if max_sum >= v and dp[max_sum - v] and k not in dict1:
+                    dict1[k] = v
+                    max_sum -= v
+        
+        # dict2 就是剩余的部分
+        dict2 = {k: v for k, v in self.one2one_nums.items() if k not in dict1}
+
+        return dict1, dict2
+
     def draw(self):
+        one2one_left_num, one2one_right_num = self.split_one2one_nums_to_minimize_difference()
+        left_sum = sum(one2one_left_num.values())
+        right_sum = sum(one2one_right_num.values())
+
         # self.min_width       
         # self.min_height      
         # self.port_width      
@@ -62,10 +100,11 @@ class ModuleBlockDrawer:
         # self.margin_module_lr
 
         self_width = self.margin_port_lr * 2 + self.port_height * max(self.one2many_num, self.noconn_num)
-        self_height = self.margin_port_td * 2 + self.port_width * max(self.one2one_nums.values())
+        self_left_height = self.margin_module_td * (len(one2one_left_num) - 1) + self.margin_port_td * 2 * len(one2one_left_num) + self.port_width * left_sum
+        self_right_height = self.margin_module_td * (len(one2one_right_num) - 1) + self.margin_port_td * 2 * len(one2one_right_num) + self.port_width * right_sum
 
         self_width = max(self_width, self.min_width)
-        self_height = max(self_height, self.min_height)
+        self_height = max(self_left_height, self_right_height, self.min_height)
 
         draw_width = self_width * 3 + self.margin_module_lr * 4 + 100
         draw_height = self_height + self.margin_module_td * 2 + self.port_height * self.one2many_num + 100
@@ -103,13 +142,37 @@ class ModuleBlockDrawer:
         width: self_width
         height: self_height
         '''
-        d.append(draw.Rectangle(
-            self.margin_module_lr * 1 + 50,
-            self.margin_module_td + self.port_height * self.one2many_num + 50,
-            self_width, self_height,
-            fill='white',
-            stroke='black'
-        ))
+        top = self.margin_module_td + self.port_height * self.one2many_num + 50
+        left = self.margin_module_lr * 1 + 50
+        width = self_width
+        for k, v in one2one_left_num.items():
+            height = self.port_width * v + self.margin_port_td * 2
+            d.append(draw.Rectangle(
+                left, top, width, height,
+                fill='white',
+                stroke='black'
+            ))
+            signals = self.one2one[k]
+            i = 1
+            if "Input" in signals:
+                for signal in signals["Input"]:
+                    # 画有向箭头
+                    d.append(draw.Line(
+                        left + width, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
+                        self.margin_module_lr * 2 + self_width * 1 + 50, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
+                        stroke='blue'
+                    ))
+                    i += 1
+            if "Output" in signals:
+                for signal in signals["Output"]:
+                    # 画有向箭头
+                    d.append(draw.Line(
+                        left + width, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
+                        self.margin_module_lr * 2 + self_width * 1 + 50, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
+                        stroke='black'
+                    ))
+                    i += 1
+            top += height + self.margin_module_td
 
         '''
         添加right module矩形
@@ -118,19 +181,24 @@ class ModuleBlockDrawer:
         width: self_width
         height: self_height
         '''
-        d.append(draw.Rectangle(
-            self.margin_module_lr * 3 + self_width * 2 + 50,
-            self.margin_module_td + self.port_height * self.one2many_num + 50,
-            self_width, self_height,
-            fill='white',
-            stroke='black'
-        ))
+        top = self.margin_module_td + self.port_height * self.one2many_num + 50
+        left = self.margin_module_lr * 3 + self_width * 2 + 50
+        width = self_width
+        for k, v in one2one_right_num.items():
+            height = self.port_width * v + self.margin_port_td * 2
+            d.append(draw.Rectangle(
+                left, top, width, height,
+                fill='white',
+                stroke='black'
+            ))
+            top += height + self.margin_module_td
 
         d.save_svg('example.svg')
 
-
-
     def to_json(self):
+
+        one2one_left_num, one2one_right_num = self.split_one2one_nums_to_minimize_difference()
+
         return {
             'module_name': self.module_name,
             'instance_name': self.instance_name,
@@ -140,6 +208,8 @@ class ModuleBlockDrawer:
             'one2one_nums': self.one2one_nums,
             'one2many_num': self.one2many_num,
             'noconn_num': self.noconn_num,
+            'one2one_left_num': one2one_left_num,
+            'one2one_right_num': one2one_right_num,
         }
 
 
