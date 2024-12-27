@@ -14,9 +14,10 @@ import pyverilog
 from pyverilog.vparser.parser import parse
 
 class ModuleBlockDrawer:
-    def __init__(self, module_name, instance_name):
+    def __init__(self, module_name, instance_name, top_module_name):
         self.module_name = module_name
         self.instance_name = instance_name
+        self.top_module_name = top_module_name
         self.one2one = defaultdict(lambda: defaultdict(list))
         self.one2many = defaultdict(list)
         self.noconn = []
@@ -24,34 +25,57 @@ class ModuleBlockDrawer:
         self.one2many_num = 0
         self.noconn_num = 0
 
-        self.min_width = 500
+        self.min_self_width = 1600
+        self.min_lr_width = 800
         self.min_height = 300
         self.port_width = 50
-        self.port_height = 50
+        self.port_height = 80
         self.port_line_width = 5
         self.port_line_height = 5
         self.margin_port_td = 70
         self.margin_port_lr = 70
         self.margin_module_td = 320
         self.margin_module_lr = 320
+        self.self_name_height = self.port_height
+        self.top_name_height = self.port_height * 2
 
     def add_one2one(self, port_name, port_direction, conn_instance, conn_module, conn_port):
-        self.one2one[conn_instance][port_direction].append((conn_module, conn_port, port_name))
+        self.one2one[conn_instance][port_direction].append(
+            {
+                "conn_module": conn_module,
+                "conn_port": conn_port,
+                "port_name": port_name
+            }
+        )
         # self.one2one_nums[f"self_{port_direction}"] += 1
         self.one2one_nums[conn_instance] += 1
-        print(f"add_one2one: {conn_instance}, {port_direction}, {self.one2one_nums[conn_instance]}")
+        # print(f"add_one2one: {conn_instance}, {port_direction}, {self.one2one_nums[conn_instance]}")
 
     def add_one2many(self, port_name, conn_instance, conn_module, conn_port):
         if port_name not in self.one2many:
             self.one2many_num += 1
-        self.one2many[port_name].append((conn_module, conn_instance, conn_port))
+        self.one2many[port_name].append(
+            {
+                "conn_module": conn_module,
+                "conn_instance": conn_instance,
+                "conn_port": conn_port
+            }
+        )
     
     def add_noconn(self, port_name):
         self.noconn.append(port_name)
         self.noconn_num += 1
     
     def split_one2one_nums_to_minimize_difference(self):
+        # one2many中的模块如果不在one2one中将它加到one2one中，并且port数记为1
+        for k, v in self.one2many.items():
+            for vv in v:
+                if vv["conn_instance"] not in self.one2one_nums:
+                    self.one2one_nums[vv["conn_instance"]] = 1
+                    self.one2one[vv["conn_instance"]] = {}
+
         total_sum = sum(self.one2one_nums.values())
+        print(f"values: {self.one2one_nums.values()}; total_sum: {total_sum}")
         
         # Initialize dp array where dp[i] will be True if sum i can be formed
         dp = [False] * (total_sum // 2 + 1)
@@ -69,14 +93,20 @@ class ModuleBlockDrawer:
             if dp[i]:
                 max_sum = i
                 break
-        
+        print(f"max_sum: {max_sum}")
+
         # 构建 dict1，尽可能接近 max_sum
         dict1 = {}
         while max_sum > 0:
+            reduced = False
             for k, v in self.one2one_nums.items():
                 if max_sum >= v and dp[max_sum - v] and k not in dict1:
                     dict1[k] = v
                     max_sum -= v
+                    reduced = True
+                    print(f"selected key: {k}, selected value: {v}, remaining sum: {max_sum}")
+            if not reduced:
+                break
         
         # dict2 就是剩余的部分
         dict2 = {k: v for k, v in self.one2one_nums.items() if k not in dict1}
@@ -88,110 +118,288 @@ class ModuleBlockDrawer:
         left_sum = sum(one2one_left_num.values())
         right_sum = sum(one2one_right_num.values())
 
-        # self.min_width       
-        # self.min_height      
-        # self.port_width      
-        # self.port_height     
-        # self.port_line_width 
-        # self.port_line_height
-        # self.margin_port_td  
-        # self.margin_port_lr  
-        # self.margin_module_td
-        # self.margin_module_lr
+        need_width = self.margin_port_lr * 2 + self.port_height * max(self.one2many_num, self.noconn_num)
+        self_left_height = self.margin_module_td * (len(one2one_left_num) - 1) + self.margin_port_td * 2 * len(one2one_left_num) + self.port_height * left_sum + self.self_name_height
+        self_right_height = self.margin_module_td * (len(one2one_right_num) - 1) + self.margin_port_td * 2 * len(one2one_right_num) + self.port_height * right_sum + self.self_name_height
 
-        self_width = self.margin_port_lr * 2 + self.port_height * max(self.one2many_num, self.noconn_num)
-        self_left_height = self.margin_module_td * (len(one2one_left_num) - 1) + self.margin_port_td * 2 * len(one2one_left_num) + self.port_width * left_sum
-        self_right_height = self.margin_module_td * (len(one2one_right_num) - 1) + self.margin_port_td * 2 * len(one2one_right_num) + self.port_width * right_sum
-
-        self_width = max(self_width, self.min_width)
+        self_width = max(need_width, self.min_self_width)
+        lr_width = max(need_width, self.min_lr_width)
         self_height = max(self_left_height, self_right_height, self.min_height)
 
-        draw_width = self_width * 3 + self.margin_module_lr * 4 + 100
-        draw_height = self_height + self.margin_module_td * 2 + self.port_height * self.one2many_num + 100
+        draw_width = lr_width * 2 + self_width + self.margin_module_lr * 4 + 100
+        draw_height = self_height + self.top_name_height + self.margin_module_td * 2 + self.port_height * self.one2many_num + 100
 
         d = draw.Drawing(draw_width, draw_height)
         '''
         添加top矩形
-        top: 50
-        left: 50
-        width: draw_width - 100
-        height: draw_height - 100
         '''
         d.append(draw.Rectangle(50, 50, draw_width - 100, draw_height - 100, fill='white', stroke='black'))
+        # 在矩形中心写模块名字
+        d.append(draw.Text(
+            self.top_module_name,
+            font_size=self.port_height * 2,
+            x=draw_width / 2,
+            y=50 + self.port_height * 2,
+            text_anchor='middle',
+            dominant_baseline='middle'
+        ))
 
         '''
         添加self矩形
-        top: self.margin_module_td + self.port_height * self.one2many_num + 50
-        left: self.margin_module_lr * 2 + self_width * 1 + 50
-        width: self_width
-        height: self_height
         '''
+        self_left = self.margin_module_lr * 2 + lr_width * 1 + 50
+        self_top = self.margin_module_td + self.top_name_height + self.port_height * self.one2many_num + 50
         d.append(draw.Rectangle(
-            self.margin_module_lr * 2 + self_width * 1 + 50, 
-            self.margin_module_td + self.port_height * self.one2many_num + 50, 
+            self_left, 
+            self_top, 
             self_width, 
             self_height, 
             fill='white', 
             stroke='black'
         ))
+        # 在矩形中心写模块名字
+        d.append(draw.Text(
+            self.instance_name,
+            font_size=self.port_height,
+            x=draw_width / 2,
+            y=self_top + 10,
+            text_anchor='middle',
+            dominant_baseline='hanging'
+        ))
 
         '''
         添加left module矩形
-        top: self.margin_module_td + self.port_height * self.one2many_num + 50
-        left: self.margin_module_lr * 1 + 50
-        width: self_width
-        height: self_height
         '''
-        top = self.margin_module_td + self.port_height * self.one2many_num + 50
+        top = self_top + self.self_name_height
         left = self.margin_module_lr * 1 + 50
-        width = self_width
+        width = lr_width
         for k, v in one2one_left_num.items():
-            height = self.port_width * v + self.margin_port_td * 2
-            d.append(draw.Rectangle(
-                left, top, width, height,
-                fill='white',
-                stroke='black'
-            ))
+            height = self.port_height * v + self.margin_port_td * 2
+            if k[0:4] == "TOP(" and k[-1] == ")":
+                line_start_x = 50
+            else:
+                d.append(draw.Rectangle(
+                    left, top, width, height,
+                    fill='white',
+                    stroke='black'
+                ))
+                # 在矩形中心写模块名字
+                d.append(draw.Text(
+                    k,
+                    font_size=self.port_height,
+                    x=left + width / 2,
+                    y=top + height / 2,
+                    text_anchor='middle',
+                    dominant_baseline='middle'
+                ))
+                line_start_x = left + width
+
             signals = self.one2one[k]
             i = 1
+            line_end_x = self_left
             if "Input" in signals:
                 for signal in signals["Input"]:
                     # 画有向箭头
+                    line_start_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
+                    line_end_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
                     d.append(draw.Line(
-                        left + width, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
-                        self.margin_module_lr * 2 + self_width * 1 + 50, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
+                        line_start_x, line_start_y,
+                        line_end_x, line_end_y,
                         stroke='blue'
+                    ))
+                    # 画折线箭头
+                    arrow_height = self.port_height / 3
+                    arrow_width = self.port_width / 2
+                    d.append(draw.Lines(
+                        line_end_x - arrow_width, line_end_y - arrow_height,
+                        line_end_x              , line_end_y,
+                        line_end_x - arrow_width, line_end_y + arrow_height,
+                        stroke='blue'
+                    ))
+                    # 箭头右侧写信号名
+                    d.append(draw.Text(
+                        signal["port_name"],
+                        font_size=self.port_height / 2 * 1,
+                        x=line_end_x + 10,
+                        y=line_end_y,
+                        text_anchor='start',
+                        dominant_baseline='middle'
                     ))
                     i += 1
             if "Output" in signals:
                 for signal in signals["Output"]:
                     # 画有向箭头
+                    line_start_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
+                    line_end_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
                     d.append(draw.Line(
-                        left + width, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
-                        self.margin_module_lr * 2 + self_width * 1 + 50, top + self.margin_port_td + self.port_width * (i - 1) + self.port_width / 2,
+                        line_start_x, line_start_y,
+                        line_end_x, line_end_y,
                         stroke='black'
+                    ))
+                    # 画折线箭头
+                    arrow_height = self.port_height / 3
+                    arrow_width = self.port_width / 2
+                    d.append(draw.Lines(
+                        line_start_x + arrow_width, line_start_y + arrow_height,
+                        line_start_x              , line_start_y,
+                        line_start_x + arrow_width, line_start_y - arrow_height,
+                        stroke='black'
+                    ))
+                    # 箭头右侧写信号名
+                    d.append(draw.Text(
+                        signal["port_name"],
+                        font_size=self.port_height / 2 * 1,
+                        x=line_end_x + 10,
+                        y=line_end_y,
+                        text_anchor='start',
+                        dominant_baseline='middle'
                     ))
                     i += 1
             top += height + self.margin_module_td
 
         '''
         添加right module矩形
-        top: self.margin_module_td + self.port_height * self.one2many_num + 50
-        left: self.margin_module_lr * 3 + self_width * 2 + 50
-        width: self_width
-        height: self_height
         '''
-        top = self.margin_module_td + self.port_height * self.one2many_num + 50
-        left = self.margin_module_lr * 3 + self_width * 2 + 50
-        width = self_width
+        top = self_top + self.self_name_height
+        left = self.margin_module_lr * 3 + lr_width + self_width + 50
+        width = lr_width
         for k, v in one2one_right_num.items():
-            height = self.port_width * v + self.margin_port_td * 2
+            height = self.port_height * v + self.margin_port_td * 2
             d.append(draw.Rectangle(
                 left, top, width, height,
                 fill='white',
                 stroke='black'
             ))
+            signals = self.one2one[k]
+            # 在矩形中心写模块名字
+            d.append(draw.Text(
+                k,
+                font_size=self.port_height,
+                x=left + width / 2,
+                y=top + height / 2,
+                text_anchor='middle',
+                dominant_baseline='middle'
+            ))
+            i = 1
+            line_start_x = left
+            line_end_x = self_left + self_width
+            if "Input" in signals:
+                for signal in signals["Input"]:
+                    # 画有向箭头
+                    line_start_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
+                    line_end_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
+                    d.append(draw.Line(
+                        line_start_x, line_start_y,
+                        line_end_x, line_end_y,
+                        stroke='blue'
+                    ))
+                    # 画折线箭头
+                    arrow_height = self.port_height / 3
+                    arrow_width = self.port_width / 2
+                    d.append(draw.Lines(
+                        line_end_x + arrow_width, line_end_y + arrow_height,
+                        line_end_x              , line_end_y,
+                        line_end_x + arrow_width, line_end_y - arrow_height,
+                        stroke='blue'
+                    ))
+                    # 箭头右侧写信号名
+                    d.append(draw.Text(
+                        signal["port_name"],
+                        font_size=self.port_height / 2 * 1,
+                        x=line_end_x - 10,
+                        y=line_end_y,
+                        text_anchor='end',
+                        dominant_baseline='middle'
+                    ))
+                    i += 1
+            if "Output" in signals:
+                for signal in signals["Output"]:
+                    # 画有向箭头
+                    line_start_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
+                    line_end_y = top + self.margin_port_td + self.port_height * (i - 1) + self.port_height / 2
+                    d.append(draw.Line(
+                        line_start_x, line_start_y,
+                        line_end_x, line_end_y,
+                        stroke='black'
+                    ))
+                    # 画折线箭头
+                    arrow_height = self.port_height / 3
+                    arrow_width = self.port_width / 2
+                    d.append(draw.Lines(
+                        line_start_x - arrow_width, line_start_y - arrow_height,
+                        line_start_x              , line_start_y,
+                        line_start_x - arrow_width, line_start_y + arrow_height,
+                        stroke='black'
+                    ))
+                    # 箭头右侧写信号名
+                    d.append(draw.Text(
+                        signal["port_name"],
+                        font_size=self.port_height / 2 * 1,
+                        x=line_end_x - 10,
+                        y=line_end_y,
+                        text_anchor='end',
+                        dominant_baseline='middle'
+                    ))
+                    i += 1
             top += height + self.margin_module_td
+
+        '''
+        添加one2many线条
+        '''
+        p0_x_start = self_left + (self_width - self.port_width * (len(self.one2many) - 1)) / 2
+        p2_x_start = self.margin_module_lr * 3 + lr_width + self_width + 50
+        p2_x_start += (lr_width - self.port_width * (len(self.one2many) - 1)) / 2
+        i = 0
+        for k, v in self.one2many.items():
+            to_modules = []
+            for signal_pkg in v:
+                to_modules.append(signal_pkg["conn_instance"])
+
+            # 三个线段，四个点定位
+            p0_x = p0_x_start + i * self.port_width
+            p0_y = self_top
+            p1_x = p0_x
+            p1_y = p0_y - self.port_height * (i + 1)
+            p2_x = p2_x_start + i * self.port_width
+            p2_y = p1_y
+            p3_x = p2_x
+            cur_module_num = 0
+            cur_port_num = 0
+            to_module_num = 0
+            to_port_num = 0
+            arrow_points = [] # 箭头端点
+            for inst_name, ports_num in one2one_right_num.items():
+                if inst_name in to_modules:
+                    to_module_num = cur_module_num
+                    to_port_num = cur_port_num
+                    arrow_points.append(self_top + self.self_name_height + to_module_num * self.margin_module_td + to_module_num * self.margin_port_td * 2 + to_port_num * self.port_height)
+                    print("add to module", inst_name, arrow_points)
+                cur_module_num += 1
+                cur_port_num += ports_num
+            print("to_module_num", to_module_num, to_port_num)
+            p3_y = self_top + self.self_name_height
+            p3_y += to_module_num * self.margin_module_td + to_module_num * self.margin_port_td * 2 + to_port_num * self.port_height
+            # 画线
+            d.append(draw.Lines(
+                p0_x, p0_y,
+                p1_x, p1_y,
+                p2_x, p2_y,
+                p3_x, p3_y,
+                stroke='red',
+                fill='none'
+            ))
+            # 画箭头
+            arrow_height = self.port_height / 2
+            arrow_width = self.port_width / 3
+            for point in arrow_points:
+                d.append(draw.Lines(
+                    p3_x, point,
+                    p3_x + arrow_width, point - arrow_height,
+                    p3_x - arrow_width, point - arrow_height,
+                    stroke='red',
+                    fill='red'
+                ))
+
 
         d.save_svg('example.svg')
 
@@ -326,7 +534,7 @@ def main():
         for instance_name, instance in insts.items():
             if instance_name == options.instmodule:
                 connections_flatten = {}
-                connections = ModuleBlockDrawer(instance.module, instance_name)
+                connections = ModuleBlockDrawer(instance.module, instance_name, options.topmodule)
                 for port in instance.portlist:
                     port_connect = top_signals[port.argname.name]
                     port_detail = modules_signals[instance.module][port.portname]

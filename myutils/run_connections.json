@@ -1,650 +1,281 @@
 {
-    "module_name": "ct_ifu_pcgen",
-    "instance_name": "x_ct_ifu_pcgen",
+    "module_name": "ct_ifu_btb",
+    "instance_name": "x_ct_ifu_btb",
     "one2one": {
         "x_ct_ifu_addrgen": {
             "Input": [
-                [
-                    "ct_ifu_addrgen",
-                    "addrgen_pcgen_pc",
-                    "addrgen_pcgen_pc"
-                ],
-                [
-                    "ct_ifu_addrgen",
-                    "addrgen_pcgen_pcload",
-                    "addrgen_pcgen_pcload"
-                ]
-            ],
-            "Output": [
-                [
-                    "ct_ifu_addrgen",
-                    "pcgen_addrgen_cancel",
-                    "pcgen_addrgen_cancel"
-                ]
-            ]
-        },
-        "TOP(ct_ifu_top)": {
-            "Input": [
-                [
-                    "ct_ifu_top",
-                    "cp0_ifu_icg_en",
-                    "cp0_ifu_icg_en"
-                ],
-                [
-                    "ct_ifu_top",
-                    "cp0_ifu_iwpe",
-                    "cp0_ifu_iwpe"
-                ],
-                [
-                    "ct_ifu_top",
-                    "cp0_yy_clk_en",
-                    "cp0_yy_clk_en"
-                ],
-                [
-                    "ct_ifu_top",
-                    "cpurst_b",
-                    "cpurst_b"
-                ],
-                [
-                    "ct_ifu_top",
-                    "forever_cpuclk",
-                    "forever_cpuclk"
-                ],
-                [
-                    "ct_ifu_top",
-                    "had_ifu_pc",
-                    "had_ifu_pc"
-                ],
-                [
-                    "ct_ifu_top",
-                    "had_ifu_pcload",
-                    "had_ifu_pcload"
-                ],
-                [
-                    "ct_ifu_top",
-                    "iu_ifu_chgflw_pc",
-                    "iu_ifu_chgflw_pc"
-                ],
-                [
-                    "ct_ifu_top",
-                    "iu_ifu_chgflw_vld",
-                    "iu_ifu_chgflw_vld"
-                ],
-                [
-                    "ct_ifu_top",
-                    "pad_yy_icg_scan_en",
-                    "pad_yy_icg_scan_en"
-                ],
-                [
-                    "ct_ifu_top",
-                    "rtu_ifu_chgflw_pc",
-                    "rtu_ifu_chgflw_pc"
-                ],
-                [
-                    "ct_ifu_top",
-                    "rtu_ifu_chgflw_vld",
-                    "rtu_ifu_chgflw_vld"
-                ],
-                [
-                    "ct_ifu_top",
-                    "rtu_ifu_xx_dbgon",
-                    "rtu_ifu_xx_dbgon"
-                ],
-                [
-                    "ct_ifu_top",
-                    "rtu_ifu_xx_expt_vld",
-                    "rtu_ifu_xx_expt_vld"
-                ]
-            ],
-            "Output": [
-                [
-                    "ct_ifu_top",
-                    "ifu_mmu_abort",
-                    "ifu_mmu_abort"
-                ],
-                [
-                    "ct_ifu_top",
-                    "ifu_mmu_va",
-                    "ifu_mmu_va"
-                ],
-                [
-                    "ct_ifu_top",
-                    "ifu_mmu_va_vld",
-                    "ifu_mmu_va_vld"
-                ],
-                [
-                    "ct_ifu_top",
-                    "ifu_rtu_cur_pc",
-                    "ifu_rtu_cur_pc"
-                ],
-                [
-                    "ct_ifu_top",
-                    "ifu_rtu_cur_pc_load",
-                    "ifu_rtu_cur_pc_load"
-                ]
-            ]
-        },
-        "x_ct_ifu_ibctrl": {
-            "Input": [
-                [
-                    "ct_ifu_ibctrl",
-                    "ibctrl_pcgen_ip_stall",
-                    "ibctrl_pcgen_ip_stall"
-                ],
-                [
-                    "ct_ifu_ibctrl",
-                    "ibctrl_pcgen_pc",
-                    "ibctrl_pcgen_pc"
-                ],
-                [
-                    "ct_ifu_ibctrl",
-                    "ibctrl_pcgen_pcload",
-                    "ibctrl_pcgen_pcload"
-                ],
-                [
-                    "ct_ifu_ibctrl",
-                    "ibctrl_pcgen_pcload_vld",
-                    "ibctrl_pcgen_pcload_vld"
-                ],
-                [
-                    "ct_ifu_ibctrl",
-                    "ibctrl_pcgen_way_pred",
-                    "ibctrl_pcgen_way_pred"
-                ]
-            ],
-            "Output": [
-                [
-                    "ct_ifu_ibctrl",
-                    "pcgen_ibctrl_bju_chgflw",
-                    "pcgen_ibctrl_bju_chgflw"
-                ],
-                [
-                    "ct_ifu_ibctrl",
-                    "pcgen_ibctrl_cancel",
-                    "pcgen_ibctrl_cancel"
-                ],
-                [
-                    "ct_ifu_ibctrl",
-                    "pcgen_ibctrl_ibuf_flush",
-                    "pcgen_ibctrl_ibuf_flush"
-                ],
-                [
-                    "ct_ifu_ibctrl",
-                    "pcgen_ibctrl_lbuf_flush",
-                    "pcgen_ibctrl_lbuf_flush"
-                ]
+                {
+                    "conn_module": "ct_ifu_addrgen",
+                    "conn_port": "addrgen_btb_index",
+                    "port_name": "addrgen_btb_index"
+                },
+                {
+                    "conn_module": "ct_ifu_addrgen",
+                    "conn_port": "addrgen_btb_tag",
+                    "port_name": "addrgen_btb_tag"
+                },
+                {
+                    "conn_module": "ct_ifu_addrgen",
+                    "conn_port": "addrgen_btb_target_pc",
+                    "port_name": "addrgen_btb_target_pc"
+                },
+                {
+                    "conn_module": "ct_ifu_addrgen",
+                    "conn_port": "addrgen_btb_update_vld",
+                    "port_name": "addrgen_btb_update_vld"
+                }
             ]
         },
         "x_ct_ifu_ifctrl": {
-            "Input": [
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_chgflw_no_stall_mask",
-                    "ifctrl_pcgen_chgflw_no_stall_mask"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_chgflw_vld",
-                    "ifctrl_pcgen_chgflw_vld"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_ins_icache_inv_done",
-                    "ifctrl_pcgen_ins_icache_inv_done"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_pcload_pc",
-                    "ifctrl_pcgen_pcload_pc"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_reissue_pcload",
-                    "ifctrl_pcgen_reissue_pcload"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_stall",
-                    "ifctrl_pcgen_stall"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_stall_short",
-                    "ifctrl_pcgen_stall_short"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "ifctrl_pcgen_way_pred",
-                    "ifctrl_pcgen_way_pred"
-                ]
+            "Output": [
+                {
+                    "conn_module": "ct_ifu_ifctrl",
+                    "conn_port": "btb_ifctrl_inv_done",
+                    "port_name": "btb_ifctrl_inv_done"
+                },
+                {
+                    "conn_module": "ct_ifu_ifctrl",
+                    "conn_port": "btb_ifctrl_inv_on",
+                    "port_name": "btb_ifctrl_inv_on"
+                }
             ],
-            "Output": [
-                [
-                    "ct_ifu_ifctrl",
-                    "pcgen_ifctrl_cancel",
-                    "pcgen_ifctrl_cancel"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "pcgen_ifctrl_pc",
-                    "pcgen_ifctrl_pc"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "pcgen_ifctrl_pipe_cancel",
-                    "pcgen_ifctrl_pipe_cancel"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "pcgen_ifctrl_reissue",
-                    "pcgen_ifctrl_reissue"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "pcgen_ifctrl_way_pred",
-                    "pcgen_ifctrl_way_pred"
-                ],
-                [
-                    "ct_ifu_ifctrl",
-                    "pcgen_ifctrl_way_pred_stall",
-                    "pcgen_ifctrl_way_pred_stall"
-                ]
-            ]
-        },
-        "x_ct_ifu_ipctrl": {
             "Input": [
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_branch_mistaken",
-                    "ipctrl_pcgen_branch_mistaken"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_branch_taken",
-                    "ipctrl_pcgen_branch_taken"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_chgflw_pc",
-                    "ipctrl_pcgen_chgflw_pc"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_chgflw_pcload",
-                    "ipctrl_pcgen_chgflw_pcload"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_chgflw_way_pred",
-                    "ipctrl_pcgen_chgflw_way_pred"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_chk_err_reissue",
-                    "ipctrl_pcgen_chk_err_reissue"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_h0_vld",
-                    "ipctrl_pcgen_h0_vld"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_if_stall",
-                    "ipctrl_pcgen_if_stall"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_inner_way0",
-                    "ipctrl_pcgen_inner_way0"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_inner_way1",
-                    "ipctrl_pcgen_inner_way1"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_inner_way_pred",
-                    "ipctrl_pcgen_inner_way_pred"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_reissue_pc",
-                    "ipctrl_pcgen_reissue_pc"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_reissue_pcload",
-                    "ipctrl_pcgen_reissue_pcload"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_reissue_way_pred",
-                    "ipctrl_pcgen_reissue_way_pred"
-                ],
-                [
-                    "ct_ifu_ipctrl",
-                    "ipctrl_pcgen_taken_pc",
-                    "ipctrl_pcgen_taken_pc"
-                ]
-            ],
-            "Output": [
-                [
-                    "ct_ifu_ipctrl",
-                    "pcgen_ipctrl_cancel",
-                    "pcgen_ipctrl_cancel"
-                ]
-            ]
-        },
-        "x_ct_ifu_lbuf": {
-            "Input": [
-                [
-                    "ct_ifu_lbuf",
-                    "lbuf_pcgen_active",
-                    "lbuf_pcgen_active"
-                ],
-                [
-                    "ct_ifu_lbuf",
-                    "lbuf_pcgen_vld_mask",
-                    "lbuf_pcgen_vld_mask"
-                ]
-            ]
-        },
-        "x_ct_ifu_bht": {
-            "Output": [
-                [
-                    "ct_ifu_bht",
-                    "pcgen_bht_chgflw",
-                    "pcgen_bht_chgflw"
-                ],
-                [
-                    "ct_ifu_bht",
-                    "pcgen_bht_chgflw_short",
-                    "pcgen_bht_chgflw_short"
-                ],
-                [
-                    "ct_ifu_bht",
-                    "pcgen_bht_ifpc",
-                    "pcgen_bht_ifpc"
-                ],
-                [
-                    "ct_ifu_bht",
-                    "pcgen_bht_pcindex",
-                    "pcgen_bht_pcindex"
-                ],
-                [
-                    "ct_ifu_bht",
-                    "pcgen_bht_seq_read",
-                    "pcgen_bht_seq_read"
-                ]
-            ]
-        },
-        "x_ct_ifu_btb": {
-            "Output": [
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_chgflw",
-                    "pcgen_btb_chgflw"
-                ],
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_chgflw_higher_than_addrgen",
-                    "pcgen_btb_chgflw_higher_than_addrgen"
-                ],
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_chgflw_higher_than_if",
-                    "pcgen_btb_chgflw_higher_than_if"
-                ],
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_chgflw_higher_than_ip",
-                    "pcgen_btb_chgflw_higher_than_ip"
-                ],
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_chgflw_short",
-                    "pcgen_btb_chgflw_short"
-                ],
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_index",
-                    "pcgen_btb_index"
-                ],
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_stall",
-                    "pcgen_btb_stall"
-                ],
-                [
-                    "ct_ifu_btb",
-                    "pcgen_btb_stall_short",
-                    "pcgen_btb_stall_short"
-                ]
-            ]
-        },
-        "x_ct_ifu_debug": {
-            "Output": [
-                [
-                    "ct_ifu_debug",
-                    "pcgen_debug_chgflw",
-                    "pcgen_debug_chgflw"
-                ],
-                [
-                    "ct_ifu_debug",
-                    "pcgen_debug_pcbus",
-                    "pcgen_debug_pcbus"
-                ]
-            ]
-        },
-        "x_ct_ifu_icache_if": {
-            "Output": [
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_chgflw",
-                    "pcgen_icache_if_chgflw"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_chgflw_bank0",
-                    "pcgen_icache_if_chgflw_bank0"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_chgflw_bank1",
-                    "pcgen_icache_if_chgflw_bank1"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_chgflw_bank2",
-                    "pcgen_icache_if_chgflw_bank2"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_chgflw_bank3",
-                    "pcgen_icache_if_chgflw_bank3"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_chgflw_short",
-                    "pcgen_icache_if_chgflw_short"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_gateclk_en",
-                    "pcgen_icache_if_gateclk_en"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_index",
-                    "pcgen_icache_if_index"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_seq_data_req",
-                    "pcgen_icache_if_seq_data_req"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_seq_data_req_short",
-                    "pcgen_icache_if_seq_data_req_short"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_seq_tag_req",
-                    "pcgen_icache_if_seq_tag_req"
-                ],
-                [
-                    "ct_ifu_icache_if",
-                    "pcgen_icache_if_way_pred",
-                    "pcgen_icache_if_way_pred"
-                ]
+                {
+                    "conn_module": "ct_ifu_ifctrl",
+                    "conn_port": "ifctrl_btb_inv",
+                    "port_name": "ifctrl_btb_inv"
+                }
             ]
         },
         "x_ct_ifu_ifdp": {
             "Output": [
-                [
-                    "ct_ifu_ifdp",
-                    "pcgen_ifdp_inc_pc",
-                    "pcgen_ifdp_inc_pc"
-                ],
-                [
-                    "ct_ifu_ifdp",
-                    "pcgen_ifdp_pc",
-                    "pcgen_ifdp_pc"
-                ],
-                [
-                    "ct_ifu_ifdp",
-                    "pcgen_ifdp_way_pred",
-                    "pcgen_ifdp_way_pred"
-                ]
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way0_pred",
+                    "port_name": "btb_ifdp_way0_pred"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way0_tag",
+                    "port_name": "btb_ifdp_way0_tag"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way0_target",
+                    "port_name": "btb_ifdp_way0_target"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way0_vld",
+                    "port_name": "btb_ifdp_way0_vld"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way1_pred",
+                    "port_name": "btb_ifdp_way1_pred"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way1_tag",
+                    "port_name": "btb_ifdp_way1_tag"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way1_target",
+                    "port_name": "btb_ifdp_way1_target"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way1_vld",
+                    "port_name": "btb_ifdp_way1_vld"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way2_pred",
+                    "port_name": "btb_ifdp_way2_pred"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way2_tag",
+                    "port_name": "btb_ifdp_way2_tag"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way2_target",
+                    "port_name": "btb_ifdp_way2_target"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way2_vld",
+                    "port_name": "btb_ifdp_way2_vld"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way3_pred",
+                    "port_name": "btb_ifdp_way3_pred"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way3_tag",
+                    "port_name": "btb_ifdp_way3_tag"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way3_target",
+                    "port_name": "btb_ifdp_way3_target"
+                },
+                {
+                    "conn_module": "ct_ifu_ifdp",
+                    "conn_port": "btb_ifdp_way3_vld",
+                    "port_name": "btb_ifdp_way3_vld"
+                }
             ]
         },
-        "x_ct_ifu_ipb": {
-            "Output": [
-                [
-                    "ct_ifu_ipb",
-                    "pcgen_ipb_chgflw",
-                    "pcgen_ipb_chgflw"
-                ]
-            ]
-        },
-        "x_ct_ifu_l0_btb": {
-            "Output": [
-                [
-                    "ct_ifu_l0_btb",
-                    "pcgen_l0_btb_chgflw_mask",
-                    "pcgen_l0_btb_chgflw_mask"
-                ],
-                [
-                    "ct_ifu_l0_btb",
-                    "pcgen_l0_btb_chgflw_pc",
-                    "pcgen_l0_btb_chgflw_pc"
-                ],
-                [
-                    "ct_ifu_l0_btb",
-                    "pcgen_l0_btb_chgflw_vld",
-                    "pcgen_l0_btb_chgflw_vld"
-                ],
-                [
-                    "ct_ifu_l0_btb",
-                    "pcgen_l0_btb_if_pc",
-                    "pcgen_l0_btb_if_pc"
-                ]
-            ]
-        },
-        "x_ct_ifu_l1_refill": {
-            "Output": [
-                [
-                    "ct_ifu_l1_refill",
-                    "pcgen_l1_refill_chgflw",
-                    "pcgen_l1_refill_chgflw"
-                ]
-            ]
-        },
-        "x_ct_ifu_sfp": {
-            "Output": [
-                [
-                    "ct_ifu_sfp",
-                    "pcgen_sfp_pc",
-                    "pcgen_sfp_pc"
-                ]
-            ]
-        },
-        "x_ct_ifu_vector": {
+        "TOP(ct_ifu_top)": {
             "Input": [
-                [
-                    "ct_ifu_vector",
-                    "vector_pcgen_pc",
-                    "vector_pcgen_pc"
-                ],
-                [
-                    "ct_ifu_vector",
-                    "vector_pcgen_pcload",
-                    "vector_pcgen_pcload"
-                ],
-                [
-                    "ct_ifu_vector",
-                    "vector_pcgen_reset_on",
-                    "vector_pcgen_reset_on"
-                ]
+                {
+                    "conn_module": "ct_ifu_top",
+                    "conn_port": "cp0_ifu_btb_en",
+                    "port_name": "cp0_ifu_btb_en"
+                },
+                {
+                    "conn_module": "ct_ifu_top",
+                    "conn_port": "cp0_ifu_icg_en",
+                    "port_name": "cp0_ifu_icg_en"
+                },
+                {
+                    "conn_module": "ct_ifu_top",
+                    "conn_port": "cp0_yy_clk_en",
+                    "port_name": "cp0_yy_clk_en"
+                },
+                {
+                    "conn_module": "ct_ifu_top",
+                    "conn_port": "cpurst_b",
+                    "port_name": "cpurst_b"
+                },
+                {
+                    "conn_module": "ct_ifu_top",
+                    "conn_port": "forever_cpuclk",
+                    "port_name": "forever_cpuclk"
+                },
+                {
+                    "conn_module": "ct_ifu_top",
+                    "conn_port": "pad_yy_icg_scan_en",
+                    "port_name": "pad_yy_icg_scan_en"
+                }
+            ]
+        },
+        "x_ct_ifu_ibdp": {
+            "Input": [
+                {
+                    "conn_module": "ct_ifu_ibdp",
+                    "conn_port": "ibdp_btb_miss",
+                    "port_name": "ibdp_btb_miss"
+                }
+            ]
+        },
+        "x_ct_ifu_ipctrl": {
+            "Input": [
+                {
+                    "conn_module": "ct_ifu_ipctrl",
+                    "conn_port": "ipctrl_btb_chgflw_vld",
+                    "port_name": "ipctrl_btb_chgflw_vld"
+                },
+                {
+                    "conn_module": "ct_ifu_ipctrl",
+                    "conn_port": "ipctrl_btb_way_pred",
+                    "port_name": "ipctrl_btb_way_pred"
+                },
+                {
+                    "conn_module": "ct_ifu_ipctrl",
+                    "conn_port": "ipctrl_btb_way_pred_error",
+                    "port_name": "ipctrl_btb_way_pred_error"
+                }
+            ]
+        },
+        "x_ct_ifu_ipdp": {
+            "Input": [
+                {
+                    "conn_module": "ct_ifu_ipdp",
+                    "conn_port": "ipdp_btb_index_pc",
+                    "port_name": "ipdp_btb_index_pc"
+                },
+                {
+                    "conn_module": "ct_ifu_ipdp",
+                    "conn_port": "ipdp_btb_target_pc",
+                    "port_name": "ipdp_btb_target_pc"
+                }
+            ]
+        },
+        "x_ct_ifu_pcgen": {
+            "Input": [
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_chgflw",
+                    "port_name": "pcgen_btb_chgflw"
+                },
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_chgflw_higher_than_addrgen",
+                    "port_name": "pcgen_btb_chgflw_higher_than_addrgen"
+                },
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_chgflw_higher_than_if",
+                    "port_name": "pcgen_btb_chgflw_higher_than_if"
+                },
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_chgflw_higher_than_ip",
+                    "port_name": "pcgen_btb_chgflw_higher_than_ip"
+                },
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_chgflw_short",
+                    "port_name": "pcgen_btb_chgflw_short"
+                },
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_index",
+                    "port_name": "pcgen_btb_index"
+                },
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_stall",
+                    "port_name": "pcgen_btb_stall"
+                },
+                {
+                    "conn_module": "ct_ifu_pcgen",
+                    "conn_port": "pcgen_btb_stall_short",
+                    "port_name": "pcgen_btb_stall_short"
+                }
             ]
         }
     },
-    "one2many": {
-        "pcgen_ipctrl_pipe_cancel": [
-            [
-                "ct_ifu_ipctrl",
-                "x_ct_ifu_ipctrl",
-                "pcgen_ipctrl_pipe_cancel"
-            ],
-            [
-                "ct_ifu_ipdp",
-                "x_ct_ifu_ipdp",
-                "pcgen_ipctrl_pipe_cancel"
-            ]
-        ]
-    },
+    "one2many": {},
     "noconn": [],
     "one2one_nums": {
-        "x_ct_ifu_addrgen": 3,
-        "TOP(ct_ifu_top)": 19,
-        "x_ct_ifu_ibctrl": 9,
-        "x_ct_ifu_ifctrl": 14,
-        "x_ct_ifu_ipctrl": 16,
-        "x_ct_ifu_lbuf": 2,
-        "x_ct_ifu_bht": 5,
-        "x_ct_ifu_btb": 8,
-        "x_ct_ifu_debug": 2,
-        "x_ct_ifu_icache_if": 12,
-        "x_ct_ifu_ifdp": 3,
-        "x_ct_ifu_ipb": 1,
-        "x_ct_ifu_l0_btb": 4,
-        "x_ct_ifu_l1_refill": 1,
-        "x_ct_ifu_sfp": 1,
-        "x_ct_ifu_vector": 3
+        "x_ct_ifu_addrgen": 4,
+        "x_ct_ifu_ifctrl": 3,
+        "x_ct_ifu_ifdp": 16,
+        "TOP(ct_ifu_top)": 6,
+        "x_ct_ifu_ibdp": 1,
+        "x_ct_ifu_ipctrl": 3,
+        "x_ct_ifu_ipdp": 2,
+        "x_ct_ifu_pcgen": 8
     },
-    "one2many_num": 1,
+    "one2many_num": 0,
     "noconn_num": 0,
     "one2one_left_num": {
-        "x_ct_ifu_addrgen": 3,
-        "TOP(ct_ifu_top)": 19,
-        "x_ct_ifu_ibctrl": 9,
-        "x_ct_ifu_ifctrl": 14,
-        "x_ct_ifu_lbuf": 2,
-        "x_ct_ifu_debug": 2,
-        "x_ct_ifu_ipb": 1,
-        "x_ct_ifu_l1_refill": 1
+        "x_ct_ifu_addrgen": 4,
+        "x_ct_ifu_ifctrl": 3,
+        "TOP(ct_ifu_top)": 6,
+        "x_ct_ifu_ibdp": 1,
+        "x_ct_ifu_ipctrl": 3,
+        "x_ct_ifu_ipdp": 2
     },
     "one2one_right_num": {
-        "x_ct_ifu_ipctrl": 16,
-        "x_ct_ifu_bht": 5,
-        "x_ct_ifu_btb": 8,
-        "x_ct_ifu_icache_if": 12,
-        "x_ct_ifu_ifdp": 3,
-        "x_ct_ifu_l0_btb": 4,
-        "x_ct_ifu_sfp": 1,
-        "x_ct_ifu_vector": 3
+        "x_ct_ifu_ifdp": 16,
+        "x_ct_ifu_pcgen": 8
     }
 }
