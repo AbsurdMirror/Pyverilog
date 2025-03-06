@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PyVerilog GUI</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      height: calc(100vh - 40px);
+      gap: 20px;
+    }
+    .left-panel {
+      flex: 0 0 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .file-section {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .file-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .file-list {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      height: 200px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .file-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .file-list-item:last-child {
+      border-bottom: none;
+    }
+    .order-buttons {
+      display: flex;
+      gap: 5px;
+    }
+    .module-section {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .module-input {
+      margin-bottom: 15px;
+    }
+    .module-list {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      height: 200px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .module-item {
+      padding: 8px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+    .module-item:hover {
+      background: #f0f0f0;
+    }
+    .module-item:last-child {
+      border-bottom: none;
+    }
+    .viewer-panel {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 8px 12px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #svg-viewer {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <div class="file-section">
+        <div class="file-buttons">
+          <button id="add-files-btn">添加文件</button>
+          <button id="add-dir-btn">添加文件夹</button>
+          <button id="clear-files-btn">清空</button>
+        </div>
+        <div class="file-list" id="file-list"></div>
+      </div>
+      
+      <div class="module-section">
+        <div class="module-input">
+          <label for="top-module">顶层模块:</label>
+          <input type="text" id="top-module">
+          <button id="analyze-btn" style="width: 100%; margin-top: 10px;">解析</button>
+        </div>
+        <div class="module-list" id="submodule-list"></div>
+      </div>
+    </div>
+    
+    <div class="viewer-panel">
+      <div id="svg-viewer"></div>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    let fileList = [];
+
+    // 文件列表管理
+    function updateFileListUI() {
+      const fileListElement = document.getElementById('file-list');
+      fileListElement.innerHTML = fileList.map((file, index) => `
+        <div class="file-list-item">
+          <span>${file}</span>
+          <div class="order-buttons">
+            <button onclick="moveFile(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
+            <button onclick="moveFile(${index}, 1)" ${index === fileList.length - 1 ? 'disabled' : ''}>↓</button>
+            <button onclick="removeFile(${index})">×</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function moveFile(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex >= 0 && newIndex < fileList.length) {
+        const temp = fileList[index];
+        fileList[index] = fileList[newIndex];
+        fileList[newIndex] = temp;
+        updateFileListUI();
+      }
+    }
+
+    function removeFile(index) {
+      fileList.splice(index, 1);
+      updateFileListUI();
+    }
+
+    // 添加文件按钮
+    document.getElementById('add-files-btn').addEventListener('click', async () => {
+      const files = await ipcRenderer.invoke('select-files');
+      fileList.push(...files.filter(file => file.endsWith('.v') || file.endsWith('.h')));
+      updateFileListUI();
+    });
+
+    // 添加文件夹按钮
+    document.getElementById('add-dir-btn').addEventListener('click', async () => {
+      const files = await ipcRenderer.invoke('select-directory');
+      fileList.push(...files.filter(file => file.endsWith('.v') || file.endsWith('.h')));
+      updateFileListUI();
+    });
+
+    // 清空按钮
+    document.getElementById('clear-files-btn').addEventListener('click', () => {
+      fileList = [];
+      updateFileListUI();
+    });
+
+    // 解析按钮
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+      const topModule = document.getElementById('top-module').value.trim();
+      if (!topModule) {
+        alert('请输入顶层模块名');
+        return;
+      }
+      if (fileList.length === 0) {
+        alert('请添加至少一个文件');
+        return;
+      }
+
+      try {
+        const submodules = await ipcRenderer.invoke('analyze-module', {
+          files: fileList,
+          topModule: topModule
+        });
+
+        const submoduleList = document.getElementById('submodule-list');
+        submoduleList.innerHTML = submodules.map(module => 
+          `<div class="module-item" onclick="generateModuleGraph('${module}')">${module}</div>`
+        ).join('');
+      } catch (error) {
+        alert(`解析失败: ${error.message}`);
+      }
+    });
+
+    // 生成模块图
+    async function generateModuleGraph(moduleName) {
+      try {
+        const topModule = document.getElementById('top-module').value.trim();
+        await ipcRenderer.invoke('generate-graph', {
+          files: fileList,
+          moduleName: moduleName,
+          topModule: topModule
+        });
+
+        const svgViewer = document.getElementById('svg-viewer');
+        svgViewer.innerHTML = `<object data="${moduleName}.svg" type="image/svg+xml" style="width: 100%; height: 100%;"></object>`;
+      } catch (error) {
+        alert(`生成图形失败: ${error.message}`);
+      }
+    }
+  </script>
+</body>
+</html>

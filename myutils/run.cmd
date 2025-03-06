@@ -1,4 +1,4 @@
-python .\gen_module_block.py -d -t ct_ifu_top -i x_ct_ifu_pcgen ^
+python .\gen_module_block.py -d -t ct_ifu_top -i x_ct_ifu_l1_refill ^
 F:\Notebooks\openc910\C910_RTL_FACTORY\gen_rtl\cpu\rtl\cpu_cfig.h ^
 F:\Notebooks\openc910\C910_RTL_FACTORY\gen_rtl\ifu\rtl\ct_ifu_addrgen.v ^
 F:\Notebooks\openc910\C910_RTL_FACTORY\gen_rtl\ifu\rtl\ct_ifu_bht_pre_array.v ^

@@ -401,11 +401,21 @@ class ModuleBlockDrawer:
                 ))
 
 
-        d.save_svg('example.svg')
+        d.save_svg(f'{self.instance_name}.svg')
 
     def to_json(self):
 
         one2one_left_num, one2one_right_num = self.split_one2one_nums_to_minimize_difference()
+
+        easy_see = defaultdict(lambda: defaultdict(list))
+
+        for k, v in self.one2one.items():
+            if "Input" in v:
+                for signal in v["Input"]:
+                    easy_see[k]["Input"].append(signal["port_name"])
+            if "Output" in v:
+                for signal in v["Output"]:
+                    easy_see[k]["Output"].append(signal["port_name"])
 
         return {
             'module_name': self.module_name,
@@ -418,6 +428,7 @@ class ModuleBlockDrawer:
             'noconn_num': self.noconn_num,
             'one2one_left_num': one2one_left_num,
             'one2one_right_num': one2one_right_num,
+            "easy_see": easy_see 
         }
 
 

@@ -2340,12 +2340,15 @@ class VerilogCodeParser(object):
 
     def preprocess(self):
         self.preprocessor.preprocess()
-        text = open(self.preprocess_output).read()
+        text = open(self.preprocess_output, encoding='utf-8').read()
         os.remove(self.preprocess_output)
         return text
 
     def parse(self, preprocess_output='preprocess.output', debug=0):
         text = self.preprocess()
+        # 输出到pyverilog.preprocessor.v
+        with open('pyverilog.preprocessor.v', 'w', encoding='utf-8') as f:
+            f.write(text)
         ast = self.parser.parse(text, debug=debug)
         self.directives = self.parser.get_directives()
         return ast
