@@ -1,7 +1,13 @@
 import sys
 import os
-from pyverilog.vparser.parser import parse
 from typing import Dict, List, Tuple
+import json  # 添加json模块导入
+
+# the next line can be removed after installation
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import pyverilog
+from pyverilog.vparser.parser import parse
 
 def parse_verilog_modules(file_paths: List[str], top_module: str) -> Dict:
     """解析Verilog文件并提取模块信息
@@ -73,7 +79,11 @@ def parse_verilog_modules(file_paths: List[str], top_module: str) -> Dict:
 def main():
     """命令行入口函数"""
     if len(sys.argv) < 3:
-        print("Usage: python verilog_parser.py <top_module> <file1> [file2 ...]")
+        print(json.dumps({
+            "success": False,
+            "error": "参数不足",
+            "message": "Usage: python verilog_parser.py <top_module> <file1> [file2 ...]"
+        }))
         sys.exit(1)
     
     top_module = sys.argv[1]
@@ -82,16 +92,30 @@ def main():
     # 验证文件是否存在
     for file_path in file_paths:
         if not os.path.exists(file_path):
-            print(f"错误：文件不存在 {file_path}")
+            print(json.dumps({
+                "success": False,
+                "error": "文件不存在",
+                "message": f"文件不存在: {file_path}"
+            }))
             sys.exit(1)
     
     try:
         result = parse_verilog_modules(file_paths, top_module)
-        print(f"解析成功！找到 {len(result['submodules'])} 个子模块")
-        for submodule in result['submodules']:
-            print(f"  - {submodule}")
+        # 构建JSON输出
+        output = {
+            "success": True,
+            "data": {
+                "submodules": result["submodules"],
+                "submodule_count": len(result["submodules"])
+            }
+        }
+        print(json.dumps(output, ensure_ascii=False))
     except Exception as e:
-        print(f"错误：{str(e)}")
+        print(json.dumps({
+            "success": False,
+            "error": "解析错误",
+            "message": str(e)
+        }, ensure_ascii=False))
         sys.exit(1)
 
 if __name__ == '__main__':
