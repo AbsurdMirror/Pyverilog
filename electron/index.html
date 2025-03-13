@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>PyVerilog GUI</title>
@@ -9,35 +10,55 @@
       padding: 20px;
       font-family: Arial, sans-serif;
     }
+
     .container {
       display: flex;
       height: calc(100vh - 40px);
       gap: 20px;
     }
+
     .left-panel {
       flex: 0 0 300px;
       display: flex;
       flex-direction: column;
       gap: 15px;
+      min-width: 300px;
+      max-width: 300px;
+      height: calc(100vh - 40px);
+      /* 修改为与容器一致的高度 */
+      overflow: hidden;
+      /* 添加这行，超出部分隐藏 */
     }
+
     .file-section {
       background: #f5f5f5;
       padding: 15px;
       border-radius: 8px;
+      height: 40vh;
+      overflow-y: auto;
+      /* 添加这行，允许垂直滚动 */
+      display: flex;
+      /* 添加这行 */
+      flex-direction: column;
+      /* 添加这行 */
     }
+
     .file-buttons {
       display: flex;
       gap: 10px;
       margin-bottom: 10px;
     }
+
     .file-list {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 4px;
-      height: 200px;
+      flex: 1;
+      /* 修改这行，去掉固定高度 */
       overflow-y: auto;
       padding: 10px;
     }
+
     .file-list-item {
       display: flex;
       justify-content: space-between;
@@ -45,40 +66,75 @@
       padding: 5px;
       border-bottom: 1px solid #eee;
     }
+
+    .file-path {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      direction: rtl;
+      text-align: left;
+      flex: 1;
+      margin-right: 10px;
+    }
+
     .file-list-item:last-child {
       border-bottom: none;
     }
+
     .order-buttons {
       display: flex;
       gap: 5px;
     }
+
     .module-section {
       background: #f5f5f5;
       padding: 15px;
       border-radius: 8px;
+      height: 40vh;
+      overflow-y: auto;
+      /* 添加这行，允许垂直滚动 */
+      display: flex;
+      /* 添加这行 */
+      flex-direction: column;
+      /* 添加这行 */
     }
+
     .module-input {
       margin-bottom: 15px;
     }
+
     .module-list {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 4px;
-      height: 200px;
+      flex: 1;
+      /* 修改这行，去掉固定高度 */
       overflow-y: auto;
       padding: 10px;
     }
+
     .module-item {
       padding: 8px;
       cursor: pointer;
       border-bottom: 1px solid #eee;
     }
+
     .module-item:hover {
       background: #f0f0f0;
     }
+
     .module-item:last-child {
       border-bottom: none;
     }
+
+    .module-item.cached {
+      background-color: #e3f2fd;
+    }
+
+    .module-item.cached:hover {
+      background-color: #bbdefb;
+    }
+
     .viewer-panel {
       flex: 1;
       background: #fff;
@@ -86,6 +142,7 @@
       border-radius: 8px;
       overflow: hidden;
     }
+
     input[type="text"] {
       width: 100%;
       padding: 8px;
@@ -93,6 +150,7 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
+
     button {
       padding: 8px 12px;
       background: #4CAF50;
@@ -101,18 +159,37 @@
       border-radius: 4px;
       cursor: pointer;
     }
+
     button:hover {
       background: #45a049;
     }
+
     #svg-viewer {
       width: 100%;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #svg-container {
+      position: absolute;
+      transform-origin: center;
+      cursor: grab;
+    }
+
+    #svg-container:active {
+      cursor: grabbing;
+    }
+
+    #svg-container svg {
+      transition: transform 0.1s ease-out;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="left-panel">
@@ -124,17 +201,20 @@
         </div>
         <div class="file-list" id="file-list"></div>
       </div>
-      
+
       <div class="module-section">
         <div class="module-input">
           <label for="top-module">顶层模块:</label>
           <input type="text" id="top-module">
-          <button id="analyze-btn" style="width: 100%; margin-top: 10px;">解析</button>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button id="analyze-btn" style="flex: 1;">解析</button>
+            <button id="load-cache-btn" style="background: #2196F3;">读取缓存</button>
+          </div>
         </div>
         <div class="module-list" id="submodule-list"></div>
       </div>
     </div>
-    
+
     <div class="viewer-panel">
       <div id="svg-viewer"></div>
     </div>
@@ -142,14 +222,51 @@
 
   <script>
     const { ipcRenderer } = require('electron');
+    const fs = require('fs');
+    const path = require('path');
     let fileList = [];
 
+    // 缓存相关函数
+    const CACHE_DIR = path.join(__dirname, 'cache');
+
+    // 修改缓存文件结构，每个顶层模块一个文件
+    function getCacheFilePath(topModule) {
+      return path.join(CACHE_DIR, `${topModule}.json`);
+    }
+
+    // 修改缓存结构
+    function readCache(topModule) {
+      const cacheFile = getCacheFilePath(topModule);
+      try {
+        return JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      } catch {
+        return {
+          files: [],      // 文件列表缓存
+          analysis: {},   // 解析结果缓存
+          svg: {}         // SVG图形缓存
+        };
+      }
+    }
+
+    // 写入缓存
+    function writeCache(topModule, data) {
+      const cacheFile = getCacheFilePath(topModule);
+      data.files = fileList;  // 添加文件列表到缓存
+      fs.writeFileSync(cacheFile, JSON.stringify(data, null, 2));
+    }
+
+    // 生成缓存键
+    function generateCacheKey(files) {
+      return JSON.stringify(files.sort());
+    }
+
     // 文件列表管理
+    // 修改文件列表渲染部分
     function updateFileListUI() {
       const fileListElement = document.getElementById('file-list');
       fileListElement.innerHTML = fileList.map((file, index) => `
         <div class="file-list-item">
-          <span>${file}</span>
+          <span class="file-path" title="${file}">${file}</span>
           <div class="order-buttons">
             <button onclick="moveFile(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
             <button onclick="moveFile(${index}, 1)" ${index === fileList.length - 1 ? 'disabled' : ''}>↓</button>
@@ -197,25 +314,38 @@
     // 解析按钮
     document.getElementById('analyze-btn').addEventListener('click', async () => {
       const topModule = document.getElementById('top-module').value.trim();
-      if (!topModule) {
-        alert('请输入顶层模块名');
-        return;
-      }
-      if (fileList.length === 0) {
-        alert('请添加至少一个文件');
+      if (!topModule || fileList.length === 0) {
+        alert(topModule ? '请添加至少一个文件' : '请输入顶层模块名');
         return;
       }
 
       try {
-        const submodules = await ipcRenderer.invoke('analyze-module', {
-          files: fileList,
-          topModule: topModule
-        });
+        const cacheKey = generateCacheKey(fileList);
+        const moduleCache = readCache(topModule);
 
+        let submodules;
+        if (cacheKey in moduleCache.analysis) {
+          submodules = moduleCache.analysis[cacheKey];
+          console.log('使用缓存的解析结果');
+        } else {
+          submodules = await ipcRenderer.invoke('analyze-module', {
+            files: fileList,
+            topModule: topModule
+          });
+          moduleCache.analysis[cacheKey] = submodules;
+          writeCache(topModule, moduleCache);
+        }
+
+        // 修改解析按钮的处理函数中的子模块列表渲染部分
         const submoduleList = document.getElementById('submodule-list');
-        submoduleList.innerHTML = submodules.map(module => 
-          `<div class="module-item" onclick="generateModuleGraph('${module}')">${module}</div>`
-        ).join('');
+        submoduleList.innerHTML = submodules.map(module => {
+          const svgKey = `${cacheKey}_${module}`;
+          const isCached = moduleCache.svg[svgKey] !== undefined;
+          return `<div class="module-item ${isCached ? 'cached' : ''}" 
+            onclick="generateModuleGraph('${module}')">${module}</div>`;
+        }).join('');
+
+
       } catch (error) {
         alert(`解析失败: ${error.message}`);
       }
@@ -225,18 +355,135 @@
     async function generateModuleGraph(moduleName) {
       try {
         const topModule = document.getElementById('top-module').value.trim();
-        await ipcRenderer.invoke('generate-graph', {
-          files: fileList,
-          moduleName: moduleName,
-          topModule: topModule
-        });
+        const cacheKey = generateCacheKey(fileList);
+        const moduleCache = readCache(topModule);
+        const svgKey = `${cacheKey}_${moduleName}`;
 
-        const svgViewer = document.getElementById('svg-viewer');
-        svgViewer.innerHTML = `<object data="${moduleName}.svg" type="image/svg+xml" style="width: 100%; height: 100%;"></object>`;
+        let result;
+        if (svgKey in moduleCache.svg) {
+          result = moduleCache.svg[svgKey];
+          console.log('使用缓存的SVG结果');
+        } else {
+          result = await ipcRenderer.invoke('generate-graph', {
+            files: fileList,
+            moduleName: moduleName,
+            topModule: topModule
+          });
+          moduleCache.svg[svgKey] = result;
+          writeCache(topModule, moduleCache);
+        }
+
+        // 在生成模块图函数中修改 SVG 显示部分
+        if (result.success) {
+          const svgViewer = document.getElementById('svg-viewer');
+          const svgPath = result.data.svg_path;
+          svgViewer.innerHTML = `
+            <div id="svg-container">
+              <object id="svg-object" data="${svgPath}" type="image/svg+xml" style="width: 100%; height: 100%; transform-origin: 0 0;"></object>
+            </div>
+          `;
+
+          // 初始化拖拽和缩放功能
+          initializeDragAndZoom();
+        }
+        else {
+          throw new Error(result.error || '生成图形失败');
+        }
       } catch (error) {
         alert(`生成图形失败: ${error.message}`);
       }
     }
+
+    // 重写拖拽和缩放功能
+    function initializeDragAndZoom() {
+      const container = document.getElementById('svg-container');
+      const svgObject = document.getElementById('svg-object');
+
+      svgObject.addEventListener('load', () => {
+        const svgDoc = svgObject.contentDocument;
+        const svgRoot = svgDoc?.querySelector('svg');
+        if (!svgRoot) return;
+
+        let scale = 1;
+        let isPanning = false;
+        let startPos = { x: 0, y: 0 };
+        let currentPos = { x: 0, y: 0 };
+
+        function updateTransform() {
+          svgRoot.style.transform = `translate(${currentPos.x}px, ${currentPos.y}px) scale(${scale})`;
+          svgRoot.style.transformOrigin = '0 0';
+        }
+
+        svgRoot.style.cursor = 'grab';
+        svgRoot.style.touchAction = 'none';
+
+        svgRoot.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          isPanning = true;
+          startPos = { x: e.clientX, y: e.clientY };
+          svgRoot.style.cursor = 'grabbing';
+        });
+
+        svgDoc.addEventListener('mousemove', (e) => {
+          if (!isPanning) return;
+          currentPos.x += e.clientX - startPos.x;
+          currentPos.y += e.clientY - startPos.y;
+          startPos = { x: e.clientX, y: e.clientY };
+          updateTransform();
+        });
+
+        svgDoc.addEventListener('mouseup', () => {
+          isPanning = false;
+          svgRoot.style.cursor = 'grab';
+        });
+
+        svgRoot.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const rect = svgRoot.getBoundingClientRect();
+          const mousePos = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+          };
+
+          const delta = e.deltaY < 0 ? 1.1 : 0.9;
+          const prevScale = scale;
+          scale = Math.min(Math.max(0.1, scale * delta), 10);
+
+          currentPos.x = mousePos.x - (mousePos.x - currentPos.x) * (scale / prevScale);
+          currentPos.y = mousePos.y - (mousePos.y - currentPos.y) * (scale / prevScale);
+
+          updateTransform();
+        });
+      });
+    }
+
+    // 替换清除缓存按钮事件为读取缓存事件
+    document.getElementById('load-cache-btn').addEventListener('click', () => {
+      const topModule = document.getElementById('top-module').value.trim();
+      if (!topModule) {
+        alert('请输入顶层模块名');
+        return;
+      }
+
+      try {
+        const moduleCache = readCache(topModule);
+        if (moduleCache.files && moduleCache.files.length > 0) {
+          fileList = [...moduleCache.files];
+          updateFileListUI();
+
+          if (moduleCache.analysis[generateCacheKey(fileList)]) {
+            // 自动触发解析按钮点击事件
+            document.getElementById('analyze-btn').click();
+          }
+          console.log('已从缓存加载文件列表');
+        } else {
+          alert('未找到缓存数据');
+        }
+      } catch (error) {
+        alert(`读取缓存失败: ${error.message}`);
+      }
+    });
   </script>
 </body>
+
 </html>

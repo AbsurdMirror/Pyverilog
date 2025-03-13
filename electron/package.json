@@ -4,7 +4,7 @@
   "description": "PyVerilog GUI with Electron",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "chcp 65001 && electron .",
     "dev": "electron . --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
