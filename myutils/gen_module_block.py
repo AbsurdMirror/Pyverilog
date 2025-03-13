@@ -75,7 +75,7 @@ class ModuleBlockDrawer:
                     self.one2one[vv["conn_instance"]] = {}
 
         total_sum = sum(self.one2one_nums.values())
-        print(f"values: {self.one2one_nums.values()}; total_sum: {total_sum}")
+        # print(f"values: {self.one2one_nums.values()}; total_sum: {total_sum}")
         
         # Initialize dp array where dp[i] will be True if sum i can be formed
         dp = [False] * (total_sum // 2 + 1)
@@ -93,7 +93,7 @@ class ModuleBlockDrawer:
             if dp[i]:
                 max_sum = i
                 break
-        print(f"max_sum: {max_sum}")
+        # print(f"max_sum: {max_sum}")
 
         # 构建 dict1，尽可能接近 max_sum
         dict1 = {}
@@ -104,7 +104,7 @@ class ModuleBlockDrawer:
                     dict1[k] = v
                     max_sum -= v
                     reduced = True
-                    print(f"selected key: {k}, selected value: {v}, remaining sum: {max_sum}")
+                    # print(f"selected key: {k}, selected value: {v}, remaining sum: {max_sum}")
             if not reduced:
                 break
         
@@ -373,10 +373,10 @@ class ModuleBlockDrawer:
                     to_module_num = cur_module_num
                     to_port_num = cur_port_num
                     arrow_points.append(self_top + self.self_name_height + to_module_num * self.margin_module_td + to_module_num * self.margin_port_td * 2 + to_port_num * self.port_height)
-                    print("add to module", inst_name, arrow_points)
+                    # print("add to module", inst_name, arrow_points)
                 cur_module_num += 1
                 cur_port_num += ports_num
-            print("to_module_num", to_module_num, to_port_num)
+            # print("to_module_num", to_module_num, to_port_num)
             p3_y = self_top + self.self_name_height
             p3_y += to_module_num * self.margin_module_td + to_module_num * self.margin_port_td * 2 + to_port_num * self.port_height
             # 画线
@@ -583,7 +583,23 @@ def main():
                         f.write(json.dumps(connections, default=custom_serializer, indent=4))
 
                 connections.draw()
+                
+                # 添加JSON输出
+                result = {
+                    'success': True,
+                    'data': {
+                        'svg_path': os.path.abspath(f'{instance_name}.svg')
+                    }
+                }
+                print(json.dumps(result, default=custom_serializer))
+                return
 
+    # 如果没有找到指定的实例，返回错误信息
+    error_result = {
+        'success': False,
+        'error': f'未找到实例 {options.instmodule}'
+    }
+    print(json.dumps(error_result))
 
 if __name__ == '__main__':
     main()
